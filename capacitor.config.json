@@ -1,0 +1,13 @@
+{
+  "appId": "com.tenseconds.app",
+  "appName": "Ten Seconds",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}

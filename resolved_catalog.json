@@ -1,0 +1,382 @@
+[
+  {
+    "id": "rock-90s",
+    "title": "Rock Anni '90",
+    "category": "decades",
+    "description": "Nirvana, Radiohead, Oasis, Pearl Jam, Soundgarden e i giganti del rock anni 90.",
+    "badge": "Popolare",
+    "cover": "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?auto=format&fit=crop&w=600&q=80",
+    "tracks": [
+      {
+        "id": "rock-90s-1",
+        "title": "Smells Like Teen Spirit",
+        "artist": "Nirvana",
+        "year": 1991,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/3/4/b/0/34bad352aa1aa0f8eecbbc9c27a40eaf.mp3?hdnea=exp=1784645450~acl=/api/1/1/3/4/b/0/34bad352aa1aa0f8eecbbc9c27a40eaf.mp3*~data=user_id=0,application_id=42~hmac=a12b27a736c0b198f9415b2c6c5f5b352f4e5dd49d7e5fcc19ddc6e5b1500f5b",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/f0282817b697279e56df13909962a54a/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-2",
+        "title": "Karma Police",
+        "artist": "Radiohead",
+        "year": 1997,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/4/1/d/0/41dd34fd7d334b1c55b6970ef6db0d2f.mp3?hdnea=exp=1784645450~acl=/api/1/1/4/1/d/0/41dd34fd7d334b1c55b6970ef6db0d2f.mp3*~data=user_id=0,application_id=42~hmac=c041c95bad3a1a07a33df65e8d35bc37621775dfa62632b7c3ce32aacfe00fed",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/05a186e0a859a36f9cd51cdae2158fe1/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-3",
+        "title": "Wonderwall",
+        "artist": "Oasis",
+        "year": 1995,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/2/8/e/0/28eb51bd66a2e1274ce09c17edb5f09c.mp3?hdnea=exp=1784645450~acl=/api/1/1/2/8/e/0/28eb51bd66a2e1274ce09c17edb5f09c.mp3*~data=user_id=0,application_id=42~hmac=9b8bbffa15d8a84de89908f900fe4f8c3e2860e59138b916eb79f7857e248ddf",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/9fb38b8f280cbbe9ee5fd66621855a8a/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-4",
+        "title": "Alive",
+        "artist": "Pearl Jam",
+        "year": 1991,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/4/e/2/0/4e2e3f9fda3e7ec7cbed140b11cdcdb1.mp3?hdnea=exp=1784645450~acl=/api/1/1/4/e/2/0/4e2e3f9fda3e7ec7cbed140b11cdcdb1.mp3*~data=user_id=0,application_id=42~hmac=7f52f712a65a1141a5c0d0824445d21655a7a7e8183fed7561de9195db42d5cd",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/00ee8c40862fb4e258fcbeaa17d7199e/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-5",
+        "title": "Black Hole Sun",
+        "artist": "Soundgarden",
+        "year": 1994,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/0/3/9/0/0394c511fa10dad15c566da5179418e8.mp3?hdnea=exp=1784645451~acl=/api/1/1/0/3/9/0/0394c511fa10dad15c566da5179418e8.mp3*~data=user_id=0,application_id=42~hmac=5dbc4bd06b8047c8793c4076498c99e041a1a3efa5f30a25a193d6aacede98cc",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/94248b664be0890be31cabf62a068293/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-6",
+        "title": "Under the Bridge",
+        "artist": "Red Hot Chili Peppers",
+        "year": 1991,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/3/5/d/0/35dec79ccfa79745ced0b4ffa2a0f8a2.mp3?hdnea=exp=1784645451~acl=/api/1/1/3/5/d/0/35dec79ccfa79745ced0b4ffa2a0f8a2.mp3*~data=user_id=0,application_id=42~hmac=63892a59b84debe0ca2eb766a9c98262914afc11abed6f2825beb08ab92f5981",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/e3f1bee87b1d5d1313641762f375a3fb/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-7",
+        "title": "Losing My Religion",
+        "artist": "R.E.M.",
+        "year": 1991,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/4/e/f/0/4ef0a38d9159a0f45d5f16399db90862.mp3?hdnea=exp=1784645451~acl=/api/1/1/4/e/f/0/4ef0a38d9159a0f45d5f16399db90862.mp3*~data=user_id=0,application_id=42~hmac=83caafa8df61c81451c5032d3f0fab0bd9b6139eb44aa8849538d06436bedcdd",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/a968ed3814acb2ef8f3929b1bebcb42d/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-8",
+        "title": "Zombie",
+        "artist": "The Cranberries",
+        "year": 1994,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/3/6/a/0/36a85b40cf6d71f69d551f95115b4db1.mp3?hdnea=exp=1784645451~acl=/api/1/1/3/6/a/0/36a85b40cf6d71f69d551f95115b4db1.mp3*~data=user_id=0,application_id=42~hmac=802967d3170dfc86890b5b81f156954cb929c88cb3aa3010dedf05c319fc58a0",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/36917cca6bd7098af00298bba28524a6/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-9",
+        "title": "Song 2",
+        "artist": "Blur",
+        "year": 1997,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/b/5/2/0/b52000f4b656776924aeecb6b45eef79.mp3?hdnea=exp=1784645451~acl=/api/1/1/b/5/2/0/b52000f4b656776924aeecb6b45eef79.mp3*~data=user_id=0,application_id=42~hmac=46ef648008cf2e212dd9268a046dc27e8885a4d3f42e6b141bc0503b42c813b2",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/1e6f6130ca0ccbdd0cde4dc2b05e6df9/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-10",
+        "title": "Basket Case",
+        "artist": "Green Day",
+        "year": 1994,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/e/9/2/0/e92e69639b644d52ef79e3ae235c8a91.mp3?hdnea=exp=1784645451~acl=/api/1/1/e/9/2/0/e92e69639b644d52ef79e3ae235c8a91.mp3*~data=user_id=0,application_id=42~hmac=329f7d2fe2d43ad28e1a0b5989e5db02d5fec2c022676f8254f18063fb906a29",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/1e17054b7bfa6576f64ea867b71ef479/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-11",
+        "title": "Say It Ain’t So",
+        "artist": "Weezer",
+        "year": 1994,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/6/c/b/0/6cbc15fc294d2388bbb9339ec9983a7d.mp3?hdnea=exp=1784645451~acl=/api/1/1/6/c/b/0/6cbc15fc294d2388bbb9339ec9983a7d.mp3*~data=user_id=0,application_id=42~hmac=a6e964389651e449831d1bfe35712916cc8a260f1cb575a005a3d49ed808924a",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/638ad930e4f20376e8a2851d9c41be00/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-12",
+        "title": "1979",
+        "artist": "The Smashing Pumpkins",
+        "year": 1995,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/b/8/8/0/b88841c8283987ab0fd90008ade3c179.mp3?hdnea=exp=1784645452~acl=/api/1/1/b/8/8/0/b88841c8283987ab0fd90008ade3c179.mp3*~data=user_id=0,application_id=42~hmac=f4dea512c60c6c6eb5ee0cfaaa70772f330a46b081152e96a48370fed30acaf9",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/c64acd4abaf6e8f2d7c895b4b73f3764/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-13",
+        "title": "Creep",
+        "artist": "Radiohead",
+        "year": 1992,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/b/9/c/0/b9c4cde36fbe176cc3e84dc08fc0611b.mp3?hdnea=exp=1784645452~acl=/api/1/1/b/9/c/0/b9c4cde36fbe176cc3e84dc08fc0611b.mp3*~data=user_id=0,application_id=42~hmac=297fae296445a6cb81d24edc254834b5ff44d705d55bf27f818bc5c7d35857ef",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/1dd56fd8824492e1a5106c99a00a85ec/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-14",
+        "title": "No Rain",
+        "artist": "Blind Melon",
+        "year": 1992,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/c/d/5/0/cd5846c10b63919e3f01eb9503453a58.mp3?hdnea=exp=1784645452~acl=/api/1/1/c/d/5/0/cd5846c10b63919e3f01eb9503453a58.mp3*~data=user_id=0,application_id=42~hmac=32fd590d67a5201a973c31e79d00e847fa486b0a94cc919f2d44070d41930f28",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/628f914a70ae6d6f0e21055373c152b3/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-15",
+        "title": "Don’t Look Back in Anger",
+        "artist": "Oasis",
+        "year": 1995,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/8/6/0/0/86078719abe82afc13aaf2c9f00bc85a.mp3?hdnea=exp=1784645452~acl=/api/1/1/8/6/0/0/86078719abe82afc13aaf2c9f00bc85a.mp3*~data=user_id=0,application_id=42~hmac=56a1bdd1eb709de6e721a20ca7c7adf026087aff5c0683bc6e47b185f841df87",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/c4368c79bbe5c88b38b5c2a2527c51e5/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-16",
+        "title": "Plush",
+        "artist": "Stone Temple Pilots",
+        "year": 1992,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/f/5/4/0/f54971627f1bdace3e4c9bb2087322b6.mp3?hdnea=exp=1784645452~acl=/api/1/1/f/5/4/0/f54971627f1bdace3e4c9bb2087322b6.mp3*~data=user_id=0,application_id=42~hmac=3c616af4b8e5e4703a8703496ed21be3d2f18ebcdafbed3430ec9b7cd7c861f8",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/3c09d880d48f7331aca91276656ce37c/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-17",
+        "title": "Jeremy",
+        "artist": "Pearl Jam",
+        "year": 1991,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/1/a/3/0/1a30bdfae3cbfd5fb87c32706221a2ea.mp3?hdnea=exp=1784645453~acl=/api/1/1/1/a/3/0/1a30bdfae3cbfd5fb87c32706221a2ea.mp3*~data=user_id=0,application_id=42~hmac=d68544e55dfffcfc59517490013be1acffd069f1a6360b3804a92f7771c52421",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/00ee8c40862fb4e258fcbeaa17d7199e/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-18",
+        "title": "Come as You Are",
+        "artist": "Nirvana",
+        "year": 1991,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/2/7/c/0/27c313fdbf4ae7aec1ac264c10e110e2.mp3?hdnea=exp=1784645453~acl=/api/1/1/2/7/c/0/27c313fdbf4ae7aec1ac264c10e110e2.mp3*~data=user_id=0,application_id=42~hmac=ba6a73e917602d1cce69f006820e2df3266b94ecff86b368878314e06c395fbf",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/f0282817b697279e56df13909962a54a/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-19",
+        "title": "Interstate Love Song",
+        "artist": "Stone Temple Pilots",
+        "year": 1994,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/7/0/f/0/70f217a9d5e53d0ab5c5359859499055.mp3?hdnea=exp=1784645453~acl=/api/1/1/7/0/f/0/70f217a9d5e53d0ab5c5359859499055.mp3*~data=user_id=0,application_id=42~hmac=57d00368aa628510fd2fbd7353ce8f330f68579c65546ad21fcd98eed56a4329",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/df5523251f4e0ea6207bd7e6fa91be77/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "rock-90s-20",
+        "title": "Paranoid Android",
+        "artist": "Radiohead",
+        "year": 1997,
+        "genre": "Rock",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/3/b/a/0/3bacec781b44f40aeae4939c71c12114.mp3?hdnea=exp=1784645453~acl=/api/1/1/3/b/a/0/3bacec781b44f40aeae4939c71c12114.mp3*~data=user_id=0,application_id=42~hmac=47fc2f0b94a6e26ef1395b8965b770712726d7a3297ed720c219ef5745c877f6",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/d283acee2fe87639a4c7433601ae0290/500x500-000000-80-0-0.jpg"
+      }
+    ]
+  },
+  {
+    "id": "pop-80s",
+    "title": "Pop Anni '80",
+    "category": "decades",
+    "description": "Michael Jackson, Madonna, Prince, Wham! e i grandi synth pop degli anni 80.",
+    "badge": "Classico",
+    "cover": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80",
+    "tracks": [
+      {
+        "id": "pop-80s-1",
+        "title": "Billie Jean",
+        "artist": "Michael Jackson",
+        "year": 1982,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/e/6/e/0/e6e0f8717b1e6353e2abf797c6849889.mp3?hdnea=exp=1784645454~acl=/api/1/1/e/6/e/0/e6e0f8717b1e6353e2abf797c6849889.mp3*~data=user_id=0,application_id=42~hmac=80fcca04dfb496061937a05db7154f27cc800ed969f3872d800dcc78ad34f7b5",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/a0ad67d1beb761f2cb9f8b60e5bcf07a/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-2",
+        "title": "Like a Prayer",
+        "artist": "Madonna",
+        "year": 1989,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/8/3/5/0/83568d6e8eab5d7d29effe9bf3a473ce.mp3?hdnea=exp=1784645454~acl=/api/1/1/8/3/5/0/83568d6e8eab5d7d29effe9bf3a473ce.mp3*~data=user_id=0,application_id=42~hmac=2765968cf16794ba27f0c9a91609cf69729dcff027c654c6035545e39ec3716b",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/cb3560d83ededa230d78f7bf047c583a/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-3",
+        "title": "Take On Me",
+        "artist": "a-ha",
+        "year": 1985,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/b/1/9/0/b19c969e9d7193a3fa7e5880fed2aefb.mp3?hdnea=exp=1784645454~acl=/api/1/1/b/1/9/0/b19c969e9d7193a3fa7e5880fed2aefb.mp3*~data=user_id=0,application_id=42~hmac=62f00aee96cfedf1db280884ed193ca3b2ac0fc3f3a6bed8274bbdd143341f74",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/e0ce8977ab98d73bcea00fc838ece034/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-4",
+        "title": "Sweet Dreams",
+        "artist": "Eurythmics",
+        "year": 1983,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/5/4/8/0/54847febfb0f146f6f039e71dc887cf6.mp3?hdnea=exp=1784645454~acl=/api/1/1/5/4/8/0/54847febfb0f146f6f039e71dc887cf6.mp3*~data=user_id=0,application_id=42~hmac=c79e86f3ef281c84ab4bef6dc64150f2d6dbed50bc4dd7c68abde0b45b4106e2",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/81061a21fd646f5bec5dcfe32684385b/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-5",
+        "title": "Purple Rain",
+        "artist": "Prince",
+        "year": 1984,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/b/d/a/0/bda5bec32c133fbce832b83eb026feaf.mp3?hdnea=exp=1784645455~acl=/api/1/1/b/d/a/0/bda5bec32c133fbce832b83eb026feaf.mp3*~data=user_id=0,application_id=42~hmac=7189500b0358392aa3f065b0930afecbdd139a5ca0f891c181baa1d836ba6104",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/8cc37398de3ee92bd31d286f30e7972d/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-6",
+        "title": "Beat It",
+        "artist": "Michael Jackson",
+        "year": 1982,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/1/7/2/0/1726d9ef2d75c2d3adfb4f82a06ab589.mp3?hdnea=exp=1784645455~acl=/api/1/1/1/7/2/0/1726d9ef2d75c2d3adfb4f82a06ab589.mp3*~data=user_id=0,application_id=42~hmac=8e329bfb38027ab527acbaa5636795bca92ef9533ace5b85e78b80f2a697440d",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/a0ad67d1beb761f2cb9f8b60e5bcf07a/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-7",
+        "title": "Material Girl",
+        "artist": "Madonna",
+        "year": 1984,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/0/b/c/0/0bc4e106a72207dd283a493c33d9abaf.mp3?hdnea=exp=1784645455~acl=/api/1/1/0/b/c/0/0bc4e106a72207dd283a493c33d9abaf.mp3*~data=user_id=0,application_id=42~hmac=64ef1c5cdc92a8a6f754f9115880df49a146fca9d60d24af76eeb016395472a6",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/329c772be6103678d4c53c43d293cd51/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-8",
+        "title": "Wake Me Up Before You Go-Go",
+        "artist": "Wham!",
+        "year": 1984,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/b/6/b/0/b6b916879db11a5fcf980c6261c46b54.mp3?hdnea=exp=1784645455~acl=/api/1/1/b/6/b/0/b6b916879db11a5fcf980c6261c46b54.mp3*~data=user_id=0,application_id=42~hmac=c23e9d028d794e38c5356900d451f55c221d074a4dde6c287b3f5b527faf0fa9",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/3c1858a4aa5d732a60c8cfcf424f24ef/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-9",
+        "title": "Girls Just Want to Have Fun",
+        "artist": "Cyndi Lauper",
+        "year": 1983,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/a/6/f/0/a6fee1bea8f3ec24b4b86785b197b09b.mp3?hdnea=exp=1784645455~acl=/api/1/1/a/6/f/0/a6fee1bea8f3ec24b4b86785b197b09b.mp3*~data=user_id=0,application_id=42~hmac=829890fd765cb52e84d466115f8f0ce2e7f280763987b833fa57d7b6e8132c81",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/48bcf7415317ec8dc1181ee55b4b0aeb/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-10",
+        "title": "When Doves Cry",
+        "artist": "Prince",
+        "year": 1984,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/9/5/f/0/95f4a53ec04f3f4e2075fbd080419cc1.mp3?hdnea=exp=1784645455~acl=/api/1/1/9/5/f/0/95f4a53ec04f3f4e2075fbd080419cc1.mp3*~data=user_id=0,application_id=42~hmac=0fed0686986ed378cf2707bf527025f531b1ea310d4962c16f824d1015820060",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/526d2d27a16da94b6f46fa4e786a34c9/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-11",
+        "title": "Thriller",
+        "artist": "Michael Jackson",
+        "year": 1982,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/3/8/3/0/3832b349ee4d8b66f6022bc99dcca300.mp3?hdnea=exp=1784645456~acl=/api/1/1/3/8/3/0/3832b349ee4d8b66f6022bc99dcca300.mp3*~data=user_id=0,application_id=42~hmac=5d33796772aa2ede7bc8340f74ddf3a6e453bae19e069468b646d9febfb0e4d4",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/92a024220a9532489c75c9d994835697/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-12",
+        "title": "Like a Virgin",
+        "artist": "Madonna",
+        "year": 1984,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/2/5/f/0/25fbaf464b037d6c6fefd78a9ef1c115.mp3?hdnea=exp=1784645456~acl=/api/1/1/2/5/f/0/25fbaf464b037d6c6fefd78a9ef1c115.mp3*~data=user_id=0,application_id=42~hmac=6a10c0ed1c13c8d488dda89ead6fd6d5195c152e83500fbc724977f592fb00d9",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/3836708e2d450cdaa61341112b972228/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-13",
+        "title": "Careless Whisper",
+        "artist": "George Michael",
+        "year": 1984,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/a/9/1/0/a91845f6dd1265c2f85a3f716d9029e5.mp3?hdnea=exp=1784645456~acl=/api/1/1/a/9/1/0/a91845f6dd1265c2f85a3f716d9029e5.mp3*~data=user_id=0,application_id=42~hmac=c6d2718c717be913ec088855a5dc4e0e7a7f5c2ebfc2f0ac9fb81d538cf2b063",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/bb61a054494a99eba6467d8364e3380c/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-14",
+        "title": "Here Comes the Rain Again",
+        "artist": "Eurythmics",
+        "year": 1983,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/a/c/3/0/ac3bdfa12fd0d2e51014bc1941bcedf3.mp3?hdnea=exp=1784645456~acl=/api/1/1/a/c/3/0/ac3bdfa12fd0d2e51014bc1941bcedf3.mp3*~data=user_id=0,application_id=42~hmac=a1ee500bb2481d311675394ee796fc8cf815f4a3a8a965e26c8cd73f2aca89a2",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/e5059bd39dff8865d1eabd1bbdaca63b/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-15",
+        "title": "Kiss",
+        "artist": "Prince",
+        "year": 1986,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/8/c/3/0/8c392a4f7618e60d22cac844b0315e36.mp3?hdnea=exp=1784645456~acl=/api/1/1/8/c/3/0/8c392a4f7618e60d22cac844b0315e36.mp3*~data=user_id=0,application_id=42~hmac=51d405efa59b3173ea7f39e232cf2c99f5dd953ce83e748a01a2eaedca3b76a6",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/6488e3e2ba3121f6e5c0b06a82c4effe/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-16",
+        "title": "Smooth Criminal",
+        "artist": "Michael Jackson",
+        "year": 1987,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/5/8/2/0/582c856e98d119f3fadc5f4609bee1d2.mp3?hdnea=exp=1784645457~acl=/api/1/1/5/8/2/0/582c856e98d119f3fadc5f4609bee1d2.mp3*~data=user_id=0,application_id=42~hmac=dc89d0743b4df02fbb29763b751414a15b8872d184b10e3d6f1a3174eec458bd",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/a0ad67d1beb761f2cb9f8b60e5bcf07a/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-17",
+        "title": "Vogue",
+        "artist": "Madonna",
+        "year": 1990,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/c/1/f/0/c1fb5f5ef77403b79869be7f24d917c7.mp3?hdnea=exp=1784645457~acl=/api/1/1/c/1/f/0/c1fb5f5ef77403b79869be7f24d917c7.mp3*~data=user_id=0,application_id=42~hmac=521e4a49c7757111883c3134af2446bc701dcb55328fff245cc7eb65a939ac86",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/329c772be6103678d4c53c43d293cd51/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-18",
+        "title": "Freedom 90",
+        "artist": "George Michael",
+        "year": 1990,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/d/6/9/0/d69e9e0521f5c8c4d07c718f4e4e4c1d.mp3?hdnea=exp=1784645457~acl=/api/1/1/d/6/9/0/d69e9e0521f5c8c4d07c718f4e4e4c1d.mp3*~data=user_id=0,application_id=42~hmac=9561400ede10a7c3a56beed5c94949f12cfc2c238af68e5cc92727c3f2058093",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/4c9fd7e1257024bff5be2a795fc7e5ca/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-19",
+        "title": "Time After Time",
+        "artist": "Cyndi Lauper",
+        "year": 1983,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/b/0/2/0/b023d90039254e9f180bdc0efca2b2df.mp3?hdnea=exp=1784645457~acl=/api/1/1/b/0/2/0/b023d90039254e9f180bdc0efca2b2df.mp3*~data=user_id=0,application_id=42~hmac=ab731af3814507d929247818f600e9d51db5a82d7c4393ce2526196d29a59924",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/48bcf7415317ec8dc1181ee55b4b0aeb/500x500-000000-80-0-0.jpg"
+      },
+      {
+        "id": "pop-80s-20",
+        "title": "Bad",
+        "artist": "Michael Jackson",
+        "year": 1987,
+        "genre": "Pop",
+        "previewUrl": "https://cdnt-preview.dzcdn.net/api/1/1/b/3/0/0/b30a5a7611b8343e2a9448ec2818032c.mp3?hdnea=exp=1784645457~acl=/api/1/1/b/3/0/0/b30a5a7611b8343e2a9448ec2818032c.mp3*~data=user_id=0,application_id=42~hmac=c8640051b97ca7dcaec4816a2a77a18780c633305cd7b38c1adb99de6ec79974",
+        "artworkUrl": "https://cdn-images.dzcdn.net/images/cover/fb0a49a91ab8137ec9d028c4dbb04021/500x500-000000-80-0-0.jpg"
+      }
+    ]
+  }
+]
