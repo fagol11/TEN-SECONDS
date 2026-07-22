@@ -355,7 +355,7 @@ export function GameProvider({ children }) {
     setMaxStreak(0);
     setStats({ correct: 0, wrong: 0, totalTimeMs: 0 });
 
-    setActiveScreen('GAME');
+    setActiveScreen(mode === 'CALIBRATION' ? 'CALIBRATION' : 'GAME');
     setupRound(0, pool, allCatalogPool);
   };
 
@@ -688,6 +688,30 @@ export function GameProvider({ children }) {
     }
   };
 
+  const logoutUser = () => {
+    signOutSupabase();
+    setUser({
+      name: 'Ospite',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+      totalScore: 0,
+      calibrationScore: 0,
+      hasCompletedCalibration: false,
+      rank: 'Suonatore di Citofono',
+      friends: ['Marco_90', 'Elena_Rock', 'Giuseppe_Bass'],
+      downloadedPlaylists: [],
+      noteStreak: 1,
+      lastDailyDate: null,
+      dailyCompletedToday: false,
+      streakBadges: [],
+      lives: 3,
+      isPro: false,
+      age: 25,
+      nationality: 'Italia',
+      flag: '🇮🇹'
+    });
+    setActiveScreen('ONBOARDING');
+  };
+
   return (
     <GameContext.Provider
       value={{
@@ -732,7 +756,8 @@ export function GameProvider({ children }) {
         recordWin,
         openPlayerProfile,
         loginWithGoogle: signInWithGoogle,
-        logoutSupabase: signOutSupabase
+        logoutSupabase: signOutSupabase,
+        logoutUser
       }}
     >
       {children}

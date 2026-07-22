@@ -1,11 +1,19 @@
 import React from 'react';
-import { X, Trophy, Crown, Swords, Gamepad2, CheckCircle2, Music2, Star, User, Globe, Calendar } from 'lucide-react';
-import { getUserRankAndClasse } from '../context/GameContext';
+import { X, Trophy, Crown, Swords, Gamepad2, CheckCircle2, Music2, Star, User, Globe, Calendar, LogOut } from 'lucide-react';
+import { useGame, getUserRankAndClasse } from '../context/GameContext';
 
 export default function PlayerProfileModal({ player, isOpen, onClose }) {
+  const { user, logoutUser } = useGame();
+
   if (!isOpen || !player) return null;
 
+  const isCurrentUser = player.name === user.name;
   const rankInfo = getUserRankAndClasse(player.totalScore || 0);
+
+  const handleLogoutClick = () => {
+    onClose();
+    logoutUser();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -125,12 +133,23 @@ export default function PlayerProfileModal({ player, isOpen, onClose }) {
           </div>
         </div>
 
-        <button
-          onClick={onClose}
-          className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-colors"
-        >
-          CHIUDI PROFILO
-        </button>
+        <div className="space-y-2 pt-1">
+          {isCurrentUser && (
+            <button
+              onClick={handleLogoutClick}
+              className="w-full py-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            >
+              <LogOut className="w-4 h-4" /> Disconnettiti (Logout)
+            </button>
+          )}
+
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-colors"
+          >
+            CHIUDI PROFILO
+          </button>
+        </div>
 
       </div>
     </div>

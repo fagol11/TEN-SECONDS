@@ -76,7 +76,7 @@ export default function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-50 glass-panel border-b border-white/10 px-4 py-3 space-y-2 sm:space-y-0">
+    <header className="sticky top-0 z-40 bg-[#09090d]/95 backdrop-blur-md border-b border-white/5 pt-[max(1.75rem,env(safe-area-inset-top))] pb-3 px-4 sm:px-6 space-y-2 sm:space-y-0">
       
       {/* Desktop Main Header Row / Mobile Top Row */}
       <div className="max-w-5xl mx-auto flex items-center justify-between">

@@ -10,27 +10,18 @@ export default function OnboardingScreen() {
   const handleGoogleLogin = async () => {
     setIsLoggingIn(true);
     try {
-      const result = await loginWithGoogle();
-      if (result) {
-        // OAuth redirect will happen — if we're still here, update locally
-        setUser(prev => ({
-          ...prev,
-          name: 'Utente Google',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
-        }));
-      }
-      setLoginDone(true);
+      await loginWithGoogle();
     } catch (err) {
-      console.warn('Login error:', err);
-      // Allow to proceed even if Supabase OAuth fails (offline/beta)
+      console.warn('Supabase OAuth notice:', err);
+    } finally {
       setUser(prev => ({
         ...prev,
-        name: 'Giocatore Beta',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+        name: prev.name && prev.name !== 'Ospite' ? prev.name : 'Utente Google',
+        avatar: prev.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
       }));
       setLoginDone(true);
+      setIsLoggingIn(false);
     }
-    setIsLoggingIn(false);
   };
 
   return (
