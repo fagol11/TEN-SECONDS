@@ -283,5 +283,8 @@ export function getCalibrationTracks() {
       uniqueTracks.push(t);
     }
   }
-  return uniqueTracks.slice(0, 10);
+  // Shuffle randomly and pick 10
+  const shuffled = [...uniqueTracks].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 10);
 }
+
