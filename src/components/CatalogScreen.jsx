@@ -13,6 +13,8 @@ export default function CatalogScreen() {
   const [downloadingId, setDownloadingId] = useState(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
+  const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false);
+
   const filteredPlaylists = PLAYLISTS.filter(p => {
     if (selectedCategory === 'all') return true;
     return p.category === selectedCategory;
@@ -45,23 +47,25 @@ export default function CatalogScreen() {
     if (!spotifyUrlInput.trim()) return;
     
     setIsImporting(true);
-    const match = spotifyUrlInput.match(/playlist\/([a-zA-Z0-9]+)/);
-    const playlistId = match ? match[1] : spotifyUrlInput.trim();
-
-    const imported = await importSpotifyPlaylist(playlistId);
+    const imported = await importSpotifyPlaylist(spotifyUrlInput.trim());
     setIsImporting(false);
+    setIsSpotifyModalOpen(false);
 
     if (imported && imported.tracks.length > 0) {
       startGame(imported, 'STANDARD', imported.tracks);
     } else {
-      alert('Impossibile caricare la playlist Spotify. Verifica l\'URL o il link fornito.');
+      alert('Impossibile caricare la playlist Spotify. Verifica il link fornito.');
     }
+  };
+
+  const handlePasteDemoSpotify = () => {
+    setSpotifyUrlInput('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M');
   };
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       
-      {/* Daily Challenge Hero Banner (Duolingo style Daily Note Streak) */}
+      {/* Daily Challenge Hero Banner */}
       <div className="relative glass-panel p-6 rounded-3xl border border-cyan-500/30 overflow-hidden bg-gradient-to-r from-cyan-950/40 via-teal-950/30 to-slate-900">
         <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -70,7 +74,7 @@ export default function CatalogScreen() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5">
-                <Music2 className="w-3.5 h-3.5 fill-current" /> SFIDA DELLA NOTA DEL GIORNO • 2X PUNTI
+                SFIDA DELLA NOTA DEL GIORNO • 2X PUNTI
               </span>
               {user.dailyCompletedToday && (
                 <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1">
@@ -81,22 +85,14 @@ export default function CatalogScreen() {
 
             <h2 className="font-display font-black text-2xl sm:text-3xl text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
               <span>NOTE DI FILA</span>
-              <Music2 className="w-5.5 h-5.5 sm:w-6 sm:h-6 text-cyan-400 fill-current shrink-0" />
-              <span className="w-5.5 h-5.5 sm:w-6.5 sm:h-6.5 rounded-full bg-cyan-500 text-white font-mono font-black text-xs sm:text-sm flex items-center justify-center shadow-md shadow-cyan-500/30 shrink-0">
-                {user.noteStreak || 1}
+              <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-cyan-500 text-white font-mono font-black text-xs sm:text-sm flex items-center justify-center shadow-md shadow-cyan-500/30 shrink-0">
+                {user.noteStreak !== undefined ? user.noteStreak : 0}
               </span>
             </h2>
             
             <p className="text-xs text-slate-300 max-w-lg leading-relaxed">
-              Completa i 10 brani del giorno per mantenere attiva la tua streak. Prosegui per 7, 14, 21 o 30 per sbloccare Super Bonus Punti e avanzare di livello!
+              Gioca con costanza per guadagnare bonus punti e avanzare di livello.
             </p>
-
-            {/* Streak Milestone Progress bar */}
-            <div className="flex items-center gap-3 pt-2">
-              <div className="text-[11px] font-bold text-slate-400 font-mono">
-                Prossimo Traguardo: {user.noteStreak < 7 ? '7 (+5.000 PT)' : user.noteStreak < 14 ? '14 (+12.000 PT)' : user.noteStreak < 21 ? '21 (+25.000 PT)' : '30 (+60.000 PT)'}
-              </div>
-            </div>
           </div>
 
           <button
@@ -108,58 +104,109 @@ export default function CatalogScreen() {
             }`}
           >
             <Play className="w-5 h-5 fill-current" />
-            {user.dailyCompletedToday ? 'RIGIOCA SFIDA GIORNALIERA' : 'GIOCA LA SFIDA DEL GIORNO 🎵'}
+            {user.dailyCompletedToday ? 'RIGIOCA SFIDA GIORNALIERA' : 'GIOCA LA SFIDA DEL GIORNO'}
           </button>
 
         </div>
       </div>
 
-      {/* Category Filter Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
-              selectedCategory === cat.id
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20 scale-105'
-                : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-white/5'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Spotify Import Box */}
-      <div className="glass-panel p-4 rounded-2xl border border-emerald-500/20 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="w-10 h-10 rounded-xl bg-[#1DB954]/20 text-[#1DB954] flex items-center justify-center shrink-0">
-            <Link className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-xs font-bold text-white">Importa Playlist da Spotify</h4>
-            <p className="text-[11px] text-slate-400">Incolla link per abbinare le anteprime audio iTunes</p>
-          </div>
+      {/* Action Row: Categories on the LEFT, Import Spotify Button justified to the RIGHT */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+        {/* Category Filter Pills (Scrollable on left) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full sm:w-auto">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-2 shrink-0 ${
+                selectedCategory === cat.id
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20 scale-105'
+                  : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white border border-white/5'
+              }`}
+            >
+              {cat.name}
+            </button>
+          ))}
         </div>
 
-        <form onSubmit={handleSpotifyImportSubmit} className="flex gap-2 w-full sm:w-auto">
-          <input
-            type="text"
-            placeholder="https://open.spotify.com/playlist/..."
-            value={spotifyUrlInput}
-            onChange={(e) => setSpotifyUrlInput(e.target.value)}
-            className="bg-black/40 border border-white/10 px-3 py-2 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 flex-1 sm:w-64"
-          />
-          <button
-            type="submit"
-            disabled={isImporting}
-            className="px-4 py-2 bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl hover:bg-emerald-400 transition-all shrink-0"
-          >
-            {isImporting ? 'Elaborazione...' : 'Gioca'}
-          </button>
-        </form>
+        {/* Dedicated Import Spotify Button (Justified Right) */}
+        <button
+          onClick={() => setIsSpotifyModalOpen(true)}
+          className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#1DB954]/20 transition-all shrink-0 active:scale-95 whitespace-nowrap sm:ml-auto"
+        >
+          <Link className="w-4 h-4 stroke-[2.5]" />
+          <span>Importa Playlist Spotify</span>
+        </button>
       </div>
+
+      {/* Spotify Import Modal Screen */}
+      {isSpotifyModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-slate-900 border border-[#1DB954]/40 rounded-3xl p-6 max-w-md w-full space-y-5 relative shadow-2xl">
+            
+            <button
+              onClick={() => setIsSpotifyModalOpen(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#1DB954]/20 text-[#1DB954] border border-[#1DB954]/40 flex items-center justify-center shrink-0">
+                <Link className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black font-display text-white">IMPORTA PLAYLIST SPOTIFY</h3>
+                <p className="text-xs text-slate-400">Incolla il link della tua playlist preferita</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Copia il link di qualsiasi playlist da Spotify ed incollalo qui sotto per abbinare le anteprime musicali e sfidare i tuoi amici!
+            </p>
+
+            <form onSubmit={handleSpotifyImportSubmit} className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-400 uppercase">Link o URL Playlist Spotify</label>
+                <input
+                  type="text"
+                  placeholder="https://open.spotify.com/playlist/..."
+                  value={spotifyUrlInput}
+                  onChange={(e) => setSpotifyUrlInput(e.target.value)}
+                  className="w-full bg-black/50 border border-white/15 px-3.5 py-3 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#1DB954]"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handlePasteDemoSpotify}
+                  className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300"
+                >
+                  Usa Link di Prova
+                </button>
+              </div>
+
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSpotifyModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
+                >
+                  ANNULLA
+                </button>
+                <button
+                  type="submit"
+                  disabled={isImporting}
+                  className="flex-1 py-3 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] text-black font-black text-xs shadow-lg shadow-[#1DB954]/20 transition-all"
+                >
+                  {isImporting ? 'IMPORTAZIONE IN CORSO...' : 'IMPORTA E GIOCA 🚀'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Playlist Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

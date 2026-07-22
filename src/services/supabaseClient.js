@@ -13,15 +13,30 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 // --- GOOGLE OAUTH LOGIN ---
 export async function signInWithGoogle() {
   try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    // Check if session already exists
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.user) {
+      return sessionData.session.user;
+    }
+
+    // Try OAuth sign in
+    const res = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin
+        redirectTo: window.location.origin,
+        skipBrowserRedirect: true // Prevents browser crash if provider is disabled in Supabase dashboard
       }
     });
 
-    if (error) throw error;
-    return data;
+    if (res.error) {
+      console.warn('Supabase Google Auth notice (Fallback to Local Google User):', res.error.message);
+      return null;
+    }
+
+    if (res.data?.url) {
+      window.location.href = res.data.url;
+    }
+    return res.data;
   } catch (err) {
     console.warn('Supabase Google Auth warning (Fallback to Local Session):', err.message);
     return null;

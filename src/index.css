@@ -19,9 +19,15 @@
   body {
     font-family: var(--font-sans);
     overflow-x: hidden;
-    user-select: none;
+    user-select: text !important;
+    -webkit-user-select: text !important;
     -webkit-tap-highlight-color: transparent;
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  p, span, h1, h2, h3, h4, input, textarea, div, a {
+    user-select: text !important;
+    -webkit-user-select: text !important;
   }
 
   h1, h2, h3, h4, .font-display {

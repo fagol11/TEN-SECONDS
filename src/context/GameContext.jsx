@@ -57,7 +57,7 @@ export function GameProvider({ children }) {
       return {
         ...parsed,
         dailyCompletedToday: isToday,
-        noteStreak: parsed.noteStreak || 1,
+        noteStreak: (parsed.lastDailyDate && parsed.noteStreak) ? parsed.noteStreak : 0,
         lives: parsed.lives !== undefined ? parsed.lives : 3,
         isPro: parsed.isPro || false,
         age: parsed.age || 25,
@@ -75,7 +75,7 @@ export function GameProvider({ children }) {
       rank: 'Suonatore di Citofono',
       friends: ['Marco_90', 'Elena_Rock', 'Giuseppe_Bass'],
       downloadedPlaylists: [],
-      noteStreak: 1, // Streak della nota 🎵
+      noteStreak: 0, // Initial note streak 0
       lastDailyDate: null,
       dailyCompletedToday: false,
       streakBadges: [],
@@ -128,6 +128,7 @@ export function GameProvider({ children }) {
   // --- GAMEPLAY STATE ---
   const [currentPlaylist, setCurrentPlaylist] = useState(null);
   const [gameMode, setGameMode] = useState('STANDARD'); // 'STANDARD' | 'CALIBRATION' | 'CHALLENGE' | 'DAILY'
+  const [currentChallengeId, setCurrentChallengeId] = useState(null);
   const [trackList, setTrackList] = useState([]);
   const [trackIndex, setTrackIndex] = useState(0);
   const [currentChoices, setCurrentChoices] = useState([]);
@@ -399,8 +400,10 @@ export function GameProvider({ children }) {
 
   // --- START DAILY CHALLENGE ---
   const startDailyChallenge = () => {
-    const dailyPool = PLAYLISTS.flatMap(p => p.tracks).slice(0, 10);
-    startGame({ id: 'daily-challenge', title: 'Sfida della Nota del Giorno 🎵' }, 'DAILY', dailyPool);
+    const allTracks = PLAYLISTS.flatMap(p => p.tracks);
+    const shuffled = [...allTracks].sort(() => Math.random() - 0.5);
+    const dailyPool = shuffled.slice(0, 10);
+    startGame({ id: 'daily-challenge', title: 'Sfida del Giorno' }, 'DAILY', dailyPool);
   };
 
   // --- START CALIBRATION TEST ---
@@ -620,13 +623,14 @@ export function GameProvider({ children }) {
     }
 
     const todayStr = new Date().toISOString().split('T')[0];
-    let newNoteStreak = user.noteStreak || 1;
+    let newNoteStreak = user.noteStreak || 0;
     let extraBonusPoints = 0;
     let newBadges = [...(user.streakBadges || [])];
 
-    // Handle Daily Challenge Streak della Nota 🎵
     if (gameMode === 'DAILY' && !user.dailyCompletedToday) {
-      if (user.lastDailyDate) {
+      if (!user.lastDailyDate) {
+        newNoteStreak = 1;
+      } else {
         const lastDate = new Date(user.lastDailyDate);
         const todayDate = new Date(todayStr);
         const diffTime = Math.abs(todayDate - lastDate);

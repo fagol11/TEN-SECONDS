@@ -40,7 +40,7 @@ export default function Navbar() {
         title="Note di Fila 🎵"
       >
         <Music2 className="w-4 h-4 fill-current text-cyan-400 shrink-0" />
-        <span className="font-black">{user.noteStreak || 1}</span>
+        <span className="font-black">{user.noteStreak !== undefined ? user.noteStreak : 0}</span>
       </div>
 
       {/* Rank Level & Score Pill */}
@@ -143,77 +143,81 @@ export default function Navbar() {
         )}
 
         {/* Desktop User Pills Container */}
-        <div className="hidden md:flex items-center gap-2 sm:gap-2.5">
-          <UserPillsContent />
-        </div>
+        {activeScreen !== 'ONBOARDING' && (
+          <div className="hidden md:flex items-center gap-2 sm:gap-2.5">
+            <UserPillsContent />
+          </div>
+        )}
 
       </div>
 
       {/* Mobile Sub-row 1: User Stats Pills (Aligned 4-column Grid) */}
-      <div className="grid grid-cols-4 gap-1.5 sm:gap-2 md:hidden pt-2 border-t border-white/5 w-full items-center">
-        {/* Vite ❤️ */}
-        <button
-          onClick={() => setIsLivesModalOpen(true)}
-          className={`h-10 px-1.5 sm:px-2 rounded-xl border text-[11px] font-bold font-mono flex items-center justify-center gap-1 transition-all hover:scale-105 w-full overflow-hidden ${
-            user.isPro
-              ? 'bg-gradient-to-r from-amber-500/20 to-purple-500/20 border-amber-400/40 text-amber-300'
-              : user.lives > 0
-              ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-              : 'bg-rose-600/30 border-rose-500 text-rose-300 animate-pulse'
-          }`}
-          title={user.isPro ? 'Account PRO: Vite Illimitate ❤️' : `Vite rimanenti: ${user.lives}/3`}
-        >
-          {user.isPro ? (
-            <>
-              <Crown className="w-3.5 h-3.5 fill-current text-amber-400 shrink-0" />
-              <span className="truncate">PRO</span>
-            </>
-          ) : (
-            <>
-              <Heart className={`w-3.5 h-3.5 fill-current shrink-0 ${user.lives === 0 ? 'text-rose-500 animate-bounce' : 'text-rose-400'}`} />
-              <span className="font-black truncate">{user.lives}/3</span>
-            </>
-          )}
-        </button>
+      {activeScreen !== 'ONBOARDING' && (
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2 md:hidden pt-2 border-t border-white/5 w-full items-center">
+          {/* Vite ❤️ */}
+          <button
+            onClick={() => setIsLivesModalOpen(true)}
+            className={`h-10 px-1.5 sm:px-2 rounded-xl border text-[11px] font-bold font-mono flex items-center justify-center gap-1 transition-all hover:scale-105 w-full overflow-hidden ${
+              user.isPro
+                ? 'bg-gradient-to-r from-amber-500/20 to-purple-500/20 border-amber-400/40 text-amber-300'
+                : user.lives > 0
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                : 'bg-rose-600/30 border-rose-500 text-rose-300 animate-pulse'
+            }`}
+            title={user.isPro ? 'Account PRO: Vite Illimitate ❤️' : `Vite rimanenti: ${user.lives}/3`}
+          >
+            {user.isPro ? (
+              <>
+                <Crown className="w-3.5 h-3.5 fill-current text-amber-400 shrink-0" />
+                <span className="truncate">PRO</span>
+              </>
+            ) : (
+              <>
+                <Heart className={`w-3.5 h-3.5 fill-current shrink-0 ${user.lives === 0 ? 'text-rose-500 animate-bounce' : 'text-rose-400'}`} />
+                <span className="font-black truncate">{user.lives}/3</span>
+              </>
+            )}
+          </button>
 
-        {/* Note di Fila 🎵 Pill Mobile (Identico a Badge Vite per font, dimensione e struttura) */}
-        <div
-          className="h-10 px-1.5 sm:px-2 rounded-xl border text-xs font-bold font-mono flex items-center justify-center gap-1.5 w-full overflow-hidden shrink-0 bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-          title="Note di Fila 🎵"
-        >
-          <Music2 className="w-3.5 h-3.5 fill-current text-cyan-400 shrink-0" />
-          <span className="font-black truncate">{user.noteStreak || 1}</span>
-        </div>
+          {/* Note di Fila 🎵 Pill Mobile */}
+          <div
+            className="h-10 px-1.5 sm:px-2 rounded-xl border text-xs font-bold font-mono flex items-center justify-center gap-1.5 w-full overflow-hidden shrink-0 bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
+            title="Note di Fila 🎵"
+          >
+            <Music2 className="w-3.5 h-3.5 fill-current text-cyan-400 shrink-0" />
+            <span className="font-black truncate">{user.noteStreak || 1}</span>
+          </div>
 
-        {/* Rank Level & Score */}
-        <div className="h-10 px-1.5 sm:px-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-1 w-full overflow-hidden">
-          <span className="text-sm leading-none shrink-0">{rankInfo.icon}</span>
-          <div className="flex flex-col justify-center text-left leading-none truncate">
-            <div className="text-[8px] uppercase font-bold text-slate-400 leading-tight truncate">
-              Liv. {rankInfo.level || 1}
-            </div>
-            <div className="text-[11px] font-black text-emerald-400 font-mono leading-tight mt-0.5 truncate">
-              {user.totalScore.toLocaleString('it-IT')}
+          {/* Rank Level & Score */}
+          <div className="h-10 px-1.5 sm:px-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-1 w-full overflow-hidden">
+            <span className="text-sm leading-none shrink-0">{rankInfo.icon}</span>
+            <div className="flex flex-col justify-center text-left leading-none truncate">
+              <div className="text-[8px] uppercase font-bold text-slate-400 leading-tight truncate">
+                Liv. {rankInfo.level || 1}
+              </div>
+              <div className="text-[11px] font-black text-emerald-400 font-mono leading-tight mt-0.5 truncate">
+                {user.totalScore.toLocaleString('it-IT')}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Avatar Container */}
-        <div className="h-10 flex items-center justify-center w-full">
-          <img
-            src={user.avatar}
-            alt={user.name}
-            onClick={() => openPlayerProfile(user)}
-            title="Clicca per visualizzare il tuo Profilo"
-            className={`w-10 h-10 rounded-xl object-cover cursor-pointer active:scale-95 transition-transform ${
-              rankInfo.classe > 0 ? 'border-2 border-amber-400 shadow-md shadow-amber-400/30' : 'border border-white/20'
-            }`}
-          />
+          {/* Avatar Container */}
+          <div className="h-10 flex items-center justify-center w-full">
+            <img
+              src={user.avatar}
+              alt={user.name}
+              onClick={() => openPlayerProfile(user)}
+              title="Clicca per visualizzare il tuo Profilo"
+              className={`w-10 h-10 rounded-xl object-cover cursor-pointer active:scale-95 transition-transform ${
+                rankInfo.classe > 0 ? 'border-2 border-amber-400 shadow-md shadow-amber-400/30' : 'border border-white/20'
+              }`}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Mobile Sub-row 2: Navigation Menu (Aligned 4-column Grid) */}
-      {user.hasCompletedCalibration && (
+      {/* Mobile Sub-row 2: Navigation Menu */}
+      {activeScreen !== 'ONBOARDING' && user.hasCompletedCalibration && (
         <div className="grid grid-cols-4 gap-1 md:hidden pt-2 border-t border-white/5 text-[11px] w-full text-center">
           <button
             onClick={() => setActiveScreen('CATALOG')}
