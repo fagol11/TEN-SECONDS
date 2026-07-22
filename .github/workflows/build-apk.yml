@@ -24,6 +24,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Install NPM Dependencies
         run: npm install
 
@@ -43,6 +46,8 @@ jobs:
         run: |
           cd android
           ./gradlew assembleDebug --stacktrace
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
