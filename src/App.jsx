@@ -14,7 +14,7 @@ function MainContent() {
   const { activeScreen, isLivesModalOpen, setIsLivesModalOpen } = useGame();
 
   return (
-    <main className="pb-12">
+    <main className={activeScreen === 'GAME' ? 'pb-2 sm:pb-4' : 'pb-12'}>
       {activeScreen === 'ONBOARDING' && <OnboardingScreen />}
       {activeScreen === 'CALIBRATION' && <CalibrationScreen />}
       {activeScreen === 'GAME' && <GameScreen />}

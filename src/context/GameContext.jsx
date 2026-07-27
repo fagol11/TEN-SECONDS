@@ -514,6 +514,25 @@ export function GameProvider({ children }) {
     }, delayMs);
   };
 
+  // Safe non-blocking confetti trigger for modern mobile webviews (Android 15/16/17 fix)
+  const triggerConfetti = () => {
+    if (typeof window === 'undefined') return;
+    requestAnimationFrame(() => {
+      try {
+        confetti({
+          particleCount: 30,
+          spread: 60,
+          ticks: 120,
+          origin: { y: 0.7 },
+          disableForReducedMotion: true,
+          useWorker: false // Disable web worker thread delegation to prevent Android WebView freezing
+        });
+      } catch (e) {
+        console.warn('Confetti animation warning:', e);
+      }
+    });
+  };
+
   // --- HANDLE USER CHOICE ---
   const submitAnswer = (choice) => {
     if (roundStatus !== 'PLAYING') return;
@@ -545,11 +564,7 @@ export function GameProvider({ children }) {
       setAnswerFeedback('CORRECT');
       playSoundEffect('correct');
 
-      confetti({
-        particleCount: 40,
-        spread: 60,
-        origin: { y: 0.7 }
-      });
+      triggerConfetti();
     } else {
       setStreak(0);
       setStats(prev => ({ ...prev, wrong: prev.wrong + 1, totalTimeMs: prev.totalTimeMs + (timeSpent * 1000) }));

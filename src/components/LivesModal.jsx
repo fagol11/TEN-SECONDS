@@ -102,21 +102,27 @@ export default function LivesModal({ isOpen, onClose }) {
                 {/* 1. Free Option: Watch Ad */}
                 <button
                   onClick={handleWatchAdClick}
-                  className="w-full p-3.5 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center justify-between transition-all active:scale-[0.98]"
+                  className="w-full p-3 sm:p-3.5 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center justify-between transition-all active:scale-[0.98]"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                     <Tv className="w-5 h-5 text-amber-400 shrink-0" />
-                    <div className="text-left">
-                      <div className="font-black text-amber-300 flex items-center gap-1.5">
-                        GUARDA SPOT ({requiredDuration} SECONDI)
-                        {requiredDuration > 5 && <span className="text-[10px] text-amber-400 bg-amber-400/20 px-1.5 py-0.5 rounded">+ Tempo</span>}
+                    <div className="text-left min-w-0 flex-1">
+                      <div className="font-black text-amber-300 flex flex-wrap items-center gap-1.5 leading-tight">
+                        <span>GUARDA SPOT ({requiredDuration} SECONDI)</span>
+                        {requiredDuration > 5 && (
+                          <span className="text-[10px] text-amber-400 bg-amber-400/20 border border-amber-400/30 px-1.5 py-0.5 rounded-md font-semibold whitespace-nowrap">
+                            + Tempo
+                          </span>
+                        )}
                       </div>
-                      <div className="text-[10px] text-amber-400/80 font-normal">
+                      <div className="text-[10px] text-amber-400/80 font-normal mt-0.5 leading-tight truncate">
                         {adWatchCount >= 2 ? 'Tempo di attesa cresciuto • Passa a PRO per zero attese' : 'Sblocca subito +1 Vita ❤️ per giocare ora'}
                       </div>
                     </div>
                   </div>
-                  <span className="bg-amber-400 text-slate-950 px-2.5 py-1 rounded-lg text-xs font-mono font-black">+1 Vita</span>
+                  <span className="bg-amber-400 text-slate-950 px-2.5 py-1 rounded-lg text-xs font-mono font-black shrink-0 ml-2 shadow-sm">
+                    +1 Vita
+                  </span>
                 </button>
 
                 {/* Divider */}
