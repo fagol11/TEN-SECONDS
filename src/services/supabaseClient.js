@@ -20,25 +20,24 @@ export async function signInWithGoogle() {
     }
 
     // Try OAuth sign in
-    const res = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin,
-        skipBrowserRedirect: true // Prevents browser crash if provider is disabled in Supabase dashboard
       }
     });
 
-    if (res.error) {
-      console.warn('Supabase Google Auth notice (Fallback to Local Google User):', res.error.message);
+    if (error) {
+      console.warn('Supabase Google Auth notice:', error.message);
       return null;
     }
 
-    if (res.data?.url) {
-      window.location.href = res.data.url;
+    if (data?.url) {
+      window.location.href = data.url;
     }
-    return res.data;
+    return data;
   } catch (err) {
-    console.warn('Supabase Google Auth warning (Fallback to Local Session):', err.message);
+    console.warn('Supabase Google Auth warning:', err.message);
     return null;
   }
 }

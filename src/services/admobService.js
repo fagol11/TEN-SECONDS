@@ -7,7 +7,7 @@ export async function initializeAdMob() {
   if (isAdMobInitialized) return;
   try {
     await AdMob.initialize({
-      initializeForTesting: false,
+      initializeForTesting: true,
     });
     isAdMobInitialized = true;
     console.log('[AdMob] Native AdMob SDK Initialized Successfully');
@@ -17,18 +17,13 @@ export async function initializeAdMob() {
 }
 
 /**
- * Preloads & Shows Rewarded Video Ad for +1 Life Reward
+ * Preloads & Shows Rewarded Video Ad for +1 Life Reward.
+ * Uses official Ad Unit ID first, falls back to Google Test Ad Unit if ad fill is not ready yet.
  * @returns {Promise<boolean>} True if user watched the ad and earned the reward
  */
 export async function showRewardedAdForLife() {
   try {
     await initializeAdMob();
-
-    // Prepare options using official Rewarded Ad Unit ID
-    const options = {
-      adId: ADMOB_CONFIG.units.rewardedLife,
-      isTesting: false,
-    };
 
     let rewardEarned = false;
 
@@ -38,9 +33,24 @@ export async function showRewardedAdForLife() {
       console.log('[AdMob] Rewarded Video Reward Claimed!');
     });
 
-    // Prepare and show ad
-    await AdMob.prepareRewardVideoAd(options);
-    await AdMob.showRewardVideoAd();
+    // 1. Try Official User Ad Unit ID
+    try {
+      await AdMob.prepareRewardVideoAd({
+        adId: ADMOB_CONFIG.units.rewardedLife,
+        isTesting: false,
+      });
+      await AdMob.showRewardVideoAd();
+    } catch (officialErr) {
+      console.warn('[AdMob] Official Ad Unit no-fill/loading notice. Trying Google Test Ad Unit:', officialErr);
+      
+      // 2. Fallback to Google Official Test Rewarded Ad Unit ID
+      await AdMob.prepareRewardVideoAd({
+        adId: ADMOB_CONFIG.testUnits.rewarded,
+        isTesting: true,
+      });
+      await AdMob.showRewardVideoAd();
+      rewardEarned = true;
+    }
 
     // Remove listener after display
     setTimeout(() => {
@@ -49,8 +59,7 @@ export async function showRewardedAdForLife() {
 
     return rewardEarned;
   } catch (e) {
-    console.warn('[AdMob] Native ad failed or skipped in browser, granting test reward:', e);
-    // Fallback for browser testing or pre-release testing
-    return true;
+    console.warn('[AdMob] Native ad failed or unsupported on this device. Granting fallback reward:', e);
+    return true; // Ensure user is never stuck without lives
   }
 }
