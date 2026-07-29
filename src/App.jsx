@@ -10,8 +10,11 @@ import LeaderboardScreen from './components/LeaderboardScreen';
 import OfflineScreen from './components/OfflineScreen';
 import LivesModal from './components/LivesModal';
 
+import ConfettiBurst from './components/ConfettiBurst';
+import StreakPopup from './components/StreakPopup';
+
 function MainContent() {
-  const { activeScreen, isLivesModalOpen, setIsLivesModalOpen } = useGame();
+  const { activeScreen, isLivesModalOpen, setIsLivesModalOpen, isConfettiActive, comboEvent } = useGame();
 
   return (
     <main className={activeScreen === 'GAME' ? 'pb-2 sm:pb-4' : 'pb-12'}>
@@ -23,6 +26,8 @@ function MainContent() {
       {activeScreen === 'LEADERBOARD' && <LeaderboardScreen />}
       {activeScreen === 'OFFLINE' && <OfflineScreen />}
 
+      <StreakPopup comboEvent={comboEvent} />
+      <ConfettiBurst active={isConfettiActive} />
       <LivesModal isOpen={isLivesModalOpen} onClose={() => setIsLivesModalOpen(false)} />
     </main>
   );

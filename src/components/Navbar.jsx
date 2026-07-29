@@ -217,7 +217,7 @@ export default function Navbar() {
       )}
 
       {/* Mobile Sub-row 2: Navigation Menu */}
-      {activeScreen !== 'ONBOARDING' && user.hasCompletedCalibration && (
+      {activeScreen !== 'ONBOARDING' && activeScreen !== 'GAME' && user.hasCompletedCalibration && (
         <div className="grid grid-cols-4 gap-1 md:hidden pt-2 border-t border-white/5 text-[11px] w-full text-center">
           <button
             onClick={() => setActiveScreen('CATALOG')}

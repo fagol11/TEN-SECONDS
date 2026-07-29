@@ -14,6 +14,7 @@ const RANDOM_OPPONENTS = [
 export default function ChallengeScreen() {
   const { startGame, user, recordWin, openPlayerProfile } = useGame();
   const [activeTab, setActiveTab] = useState('1v1'); // '1v1' | 'random' | 'tournament'
+  const [songCount, setSongCount] = useState(10); // 10 | 15 | 20
   
   // 1v1 State
   const [selectedPlaylist1v1, setSelectedPlaylist1v1] = useState(PLAYLISTS[0]);
@@ -51,7 +52,7 @@ export default function ChallengeScreen() {
   const handlePlay1v1 = () => {
     if (completedSet.has(challengeCode)) return;
     recordWin('CHALLENGE');
-    startGame(selectedPlaylist1v1, 'CHALLENGE', null, challengeCode);
+    startGame(selectedPlaylist1v1, 'CHALLENGE', null, challengeCode, songCount);
   };
 
   const handleSearchRandomMatch = () => {
@@ -71,7 +72,7 @@ export default function ChallengeScreen() {
   const handlePlayRandomMatch = () => {
     if (completedSet.has(randomCode)) return;
     recordWin('CHALLENGE');
-    startGame(randomPlaylist, 'CHALLENGE', null, randomCode);
+    startGame(randomPlaylist, 'CHALLENGE', null, randomCode, songCount);
   };
 
   const handleGenerateTournament = () => {
@@ -89,7 +90,7 @@ export default function ChallengeScreen() {
   const handlePlayTournament = () => {
     if (completedSet.has(tournamentCode)) return;
     recordWin('TOURNAMENT');
-    startGame(selectedPlaylistTournament, 'CHALLENGE', null, tournamentCode);
+    startGame(selectedPlaylistTournament, 'CHALLENGE', null, tournamentCode, songCount);
   };
 
   const toggleParticipant = (friendName) => {
@@ -148,6 +149,34 @@ export default function ChallengeScreen() {
         >
           <Crown className="w-3.5 h-3.5" /> Torneo
         </button>
+      </div>
+
+      {/* Song Count Mode Selector (10, 15, or 20 Songs) */}
+      <div className="bg-white/5 p-3 rounded-2xl border border-white/10 space-y-2">
+        <div className="text-xs font-bold text-slate-300 flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <Trophy className="w-4 h-4" /> Durata Partita (Numero di Canzoni):
+          </span>
+          <span className="font-mono text-xs font-black text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+            {songCount} CANZONI
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[10, 15, 20].map((count) => (
+            <button
+              key={count}
+              type="button"
+              onClick={() => setSongCount(count)}
+              className={`py-2 rounded-xl text-xs font-bold font-mono transition-all border ${
+                songCount === count
+                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-black shadow-lg shadow-emerald-500/20'
+                  : 'bg-white/5 text-slate-400 border-white/10 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              {count} Canzoni
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* --- MODE 1: 1v1 SFIDA CON UN AMICO --- */}

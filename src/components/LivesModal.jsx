@@ -171,7 +171,7 @@ export default function LivesModal({ isOpen, onClose }) {
                       }`}
                     >
                       <div className="text-[10px] uppercase font-bold text-slate-400">Piano Mensile</div>
-                      <div className="font-display font-black text-lg text-white mt-0.5">4,90 €</div>
+                      <div className="font-display font-black text-lg text-white mt-0.5">2,90 €</div>
                       <div className="text-[10px] text-slate-400 font-mono">/ mese</div>
                     </div>
 
@@ -188,8 +188,8 @@ export default function LivesModal({ isOpen, onClose }) {
                         2 Mesi Gratis 🎁
                       </span>
                       <div className="text-[10px] uppercase font-bold text-amber-300">Piano Annuale</div>
-                      <div className="font-display font-black text-lg text-amber-400 mt-0.5">49,90 €</div>
-                      <div className="text-[10px] text-slate-400 font-mono">/ anno (4,15€/m)</div>
+                      <div className="font-display font-black text-lg text-amber-400 mt-0.5">29,90 €</div>
+                      <div className="text-[10px] text-slate-400 font-mono">/ anno (2,49€/m)</div>
                     </div>
 
                   </div>
@@ -200,7 +200,7 @@ export default function LivesModal({ isOpen, onClose }) {
                     className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:brightness-110 text-slate-950 font-black font-display text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 active:scale-[0.98] transition-all"
                   >
                     <Crown className="w-4 h-4 fill-current" />
-                    ATTIVA ABBONAMENTO {selectedPlan === 'yearly' ? 'ANNUALE (49,90€)' : 'MENSILE (4,90€)'}
+                    ATTIVA ABBONAMENTO {selectedPlan === 'yearly' ? 'ANNUALE (29,90€)' : 'MENSILE (2,90€)'}
                   </button>
                 </div>
               </>

@@ -1,13 +1,26 @@
-import React from 'react';
-import { X, Trophy, Crown, Swords, Gamepad2, CheckCircle2, Music2, Star, User, Globe, Calendar, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Trophy, Crown, Swords, Gamepad2, CheckCircle2, Music2, Star, User, Globe, Calendar, LogOut, Camera, Upload, Check } from 'lucide-react';
 import { useGame, getUserRankAndClasse } from '../context/GameContext';
 
+const PRESET_AVATARS = [
+  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=200&q=80',
+  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+];
+
 export default function PlayerProfileModal({ player, isOpen, onClose }) {
-  const { user, logoutUser } = useGame();
+  const { user, setUser, logoutUser } = useGame();
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   if (!isOpen || !player) return null;
 
   const isCurrentUser = player.name === user.name;
+  const currentAvatar = isCurrentUser ? user.avatar : (player.avatar || PRESET_AVATARS[0]);
   const rankInfo = getUserRankAndClasse(player.totalScore || 0);
 
   const handleLogoutClick = () => {
@@ -15,9 +28,27 @@ export default function PlayerProfileModal({ player, isOpen, onClose }) {
     logoutUser();
   };
 
+  const handleSelectAvatar = (url) => {
+    setUser(prev => ({ ...prev, avatar: url }));
+    setIsPickerOpen(false);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result) {
+          handleSelectAvatar(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 max-w-sm w-full space-y-5 relative shadow-2xl overflow-hidden">
+      <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 max-w-sm w-full space-y-5 relative shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
         
         {/* Close Button */}
         <button
@@ -29,12 +60,23 @@ export default function PlayerProfileModal({ player, isOpen, onClose }) {
 
         {/* Header Avatar & Basic Info */}
         <div className="flex items-center gap-4 pt-1">
-          <div className="relative shrink-0">
+          <div className="relative shrink-0 group">
             <img
-              src={player.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'}
+              src={currentAvatar}
               alt={player.name}
               className="w-16 h-16 rounded-2xl object-cover border-2 border-emerald-400/40 shadow-lg"
             />
+            
+            {isCurrentUser && (
+              <button
+                onClick={() => setIsPickerOpen(!isPickerOpen)}
+                className="absolute -bottom-1 -right-1 p-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-full shadow-lg transition-transform hover:scale-110 active:scale-95"
+                title="Cambia Foto Profilo"
+              >
+                <Camera className="w-3.5 h-3.5" />
+              </button>
+            )}
+
             {rankInfo.classe > 0 && (
               <span className="absolute -top-1 -right-1 bg-amber-400 text-slate-950 p-1 rounded-full text-xs font-bold" title={`Classe ${rankInfo.classe}`}>
                 <Star className="w-3.5 h-3.5 fill-current" />
@@ -63,6 +105,60 @@ export default function PlayerProfileModal({ player, isOpen, onClose }) {
             </div>
           </div>
         </div>
+
+        {/* AVATAR PICKER SECTION (Expanded when editing profile picture) */}
+        {isCurrentUser && isPickerOpen && (
+          <div className="p-4 rounded-2xl bg-white/5 border border-emerald-500/30 space-y-3 animate-fadeIn">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase text-emerald-400 tracking-wider flex items-center gap-1">
+                <Camera className="w-3.5 h-3.5" /> Scegli Foto Profilo
+              </span>
+              <button
+                onClick={() => setIsPickerOpen(false)}
+                className="text-[10px] text-slate-400 hover:text-white"
+              >
+                Annulla
+              </button>
+            </div>
+
+            {/* Presets Grid */}
+            <div className="grid grid-cols-4 gap-2">
+              {PRESET_AVATARS.map((url, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSelectAvatar(url)}
+                  className={`relative rounded-xl overflow-hidden border-2 transition-all hover:scale-105 ${
+                    currentAvatar === url ? 'border-emerald-400 ring-2 ring-emerald-400/40' : 'border-white/10 hover:border-white/40'
+                  }`}
+                >
+                  <img src={url} alt={`Avatar ${idx + 1}`} className="w-full h-12 object-cover" />
+                  {currentAvatar === url && (
+                    <div className="absolute inset-0 bg-emerald-500/30 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-emerald-300 stroke-[3]" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* File Upload Option */}
+            <div className="pt-2 border-t border-white/10">
+              <label
+                htmlFor="avatar-file-input"
+                className="w-full py-2.5 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98]"
+              >
+                <Upload className="w-4 h-4" /> Carica foto dal telefono
+              </label>
+              <input
+                id="avatar-file-input"
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Total Score Banner */}
         <div className="glass-panel p-3.5 rounded-2xl border border-white/10 flex items-center justify-between font-mono">

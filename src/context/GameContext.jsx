@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { PLAYLISTS, generateChoicesForTrack, getCalibrationTracks } from '../services/curatedCatalog';
+import { PLAYLISTS, generateChoicesForTrack, getCalibrationTracks, getRandomizedTrackPool, ALL_MASTER_TRACKS } from '../services/curatedCatalog';
 import { saveOfflineScore, getOfflineAudioUrl } from '../services/offlineStorage';
 import { resolveAudioPreview } from '../services/audioResolver';
 import { supabase, signInWithGoogle, signOutSupabase } from '../services/supabaseClient';
+import { showRewardedAdForLife } from '../services/admobService';
 import PlayerProfileModal from '../components/PlayerProfileModal';
 import confetti from 'canvas-confetti';
 
@@ -283,11 +284,14 @@ export function GameProvider({ children }) {
   };
 
   // --- REWARD AD & PRO ACTIONS ---
-  const watchRewardAd = () => {
-    setUser(prev => ({
-      ...prev,
-      lives: Math.min(3, (prev.lives || 0) + 1)
-    }));
+  const watchRewardAd = async () => {
+    const success = await showRewardedAdForLife();
+    if (success) {
+      setUser(prev => ({
+        ...prev,
+        lives: Math.min(3, (prev.lives || 0) + 1)
+      }));
+    }
   };
 
   const toggleProStatus = () => {
@@ -324,8 +328,10 @@ export function GameProvider({ children }) {
     }));
   };
 
+  const playedTrackIdsRef = useRef(new Set());
+
   // --- START A NEW GAME ---
-  const startGame = (playlist, mode = 'STANDARD', customTracks = null, challengeId = null) => {
+  const startGame = (playlist, mode = 'STANDARD', customTracks = null, challengeId = null, targetCount = 10) => {
     clearAutoNextTimer();
     getAudioContext(); // Resume Web Audio API context on user gesture
 
@@ -343,10 +349,14 @@ export function GameProvider({ children }) {
       }));
     }
 
-    const pool = customTracks || playlist?.tracks || PLAYLISTS[0].tracks;
-    const allCatalogPool = PLAYLISTS.flatMap(p => p.tracks);
+    let pool;
+    if (customTracks && customTracks.length > 0) {
+      pool = [...customTracks].sort(() => Math.random() - 0.5).slice(0, targetCount);
+    } else {
+      pool = getRandomizedTrackPool(playlist || PLAYLISTS[0], targetCount, playedTrackIdsRef.current);
+    }
 
-    setCurrentPlaylist(playlist);
+    setCurrentPlaylist(playlist || PLAYLISTS[0]);
     setGameMode(mode);
     setCurrentChallengeId(challengeId);
     setTrackList(pool);
@@ -357,7 +367,7 @@ export function GameProvider({ children }) {
     setStats({ correct: 0, wrong: 0, totalTimeMs: 0 });
 
     setActiveScreen(mode === 'CALIBRATION' ? 'CALIBRATION' : 'GAME');
-    setupRound(0, pool, allCatalogPool);
+    setupRound(0, pool, ALL_MASTER_TRACKS);
   };
 
   // --- RESTART GAME IN PROGRESS (-1 Vita per i free users) ---
@@ -378,7 +388,8 @@ export function GameProvider({ children }) {
       }));
     }
 
-    const pool = trackList && trackList.length > 0 ? trackList : currentPlaylist.tracks;
+    const basePool = currentPlaylist?.tracks || trackList;
+    const pool = [...basePool].sort(() => Math.random() - 0.5);
     const allCatalogPool = PLAYLISTS.flatMap(p => p.tracks);
 
     setTrackIndex(0);
@@ -514,24 +525,17 @@ export function GameProvider({ children }) {
     }, delayMs);
   };
 
-  // Safe non-blocking confetti trigger for modern mobile webviews (Android 15/16/17 fix)
+  const [isConfettiActive, setIsConfettiActive] = useState(false);
+
+  // Safe 60FPS GPU-accelerated confetti burst
   const triggerConfetti = () => {
-    if (typeof window === 'undefined') return;
-    requestAnimationFrame(() => {
-      try {
-        confetti({
-          particleCount: 30,
-          spread: 60,
-          ticks: 120,
-          origin: { y: 0.7 },
-          disableForReducedMotion: true,
-          useWorker: false // Disable web worker thread delegation to prevent Android WebView freezing
-        });
-      } catch (e) {
-        console.warn('Confetti animation warning:', e);
-      }
-    });
+    setIsConfettiActive(true);
+    setTimeout(() => {
+      setIsConfettiActive(false);
+    }, 700);
   };
+
+  const [comboEvent, setComboEvent] = useState(null);
 
   // --- HANDLE USER CHOICE ---
   const submitAnswer = (choice) => {
@@ -563,6 +567,24 @@ export function GameProvider({ children }) {
       setStats(prev => ({ ...prev, correct: prev.correct + 1, totalTimeMs: prev.totalTimeMs + (timeSpent * 1000) }));
       setAnswerFeedback('CORRECT');
       playSoundEffect('correct');
+
+      // Arcade Streak Combo Text Animation
+      let titleText = 'NICE!';
+      if (newStreak === 1) {
+        const praiseList = ['NICE! 🎵', 'GREAT! ⚡', 'GOOD! 🌟', 'EXCELLENT! 🎯'];
+        titleText = praiseList[Math.floor(Math.random() * praiseList.length)];
+      } else if (newStreak >= 2 && newStreak < 10) {
+        titleText = `${newStreak} IN A ROW! 🔥`;
+      } else if (newStreak >= 10) {
+        titleText = `10 IN A ROW! PERFECT 🏆`;
+      }
+
+      setComboEvent({
+        id: Date.now(),
+        streak: newStreak,
+        title: titleText,
+        points: points
+      });
 
       triggerConfetti();
     } else {
@@ -751,6 +773,8 @@ export function GameProvider({ children }) {
         roundStatus,
         selectedChoice,
         answerFeedback,
+        isConfettiActive,
+        comboEvent,
         roundScore,
         streak,
         maxStreak,

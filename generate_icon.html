@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Icon Generator</title>
+</head>
+<body style="background: #111; color: #fff; font-family: sans-serif; padding: 20px;">
+  <h2>Generating App Icon PNGs...</h2>
+  <div id="status">Generating...</div>
+
+  <canvas id="iconCanvas" width="1024" height="1024" style="border:1px solid #444; width:256px; height:256px;"></canvas>
+  <canvas id="foregroundCanvas" width="1024" height="1024" style="border:1px solid #444; width:256px; height:256px;"></canvas>
+
+  <script>
+    function drawIcon() {
+      // 1. Full Icon & Background Canvas
+      const canvas = document.getElementById('iconCanvas');
+      const ctx = canvas.getContext('2d');
+
+      // Gradient background
+      const grad = ctx.createLinearGradient(0, 1024, 1024, 0);
+      grad.addColorStop(0, '#10b981'); // Emerald 500
+      grad.addColorStop(0.5, '#14b8a6'); // Teal 500
+      grad.addColorStop(1, '#06b6d4'); // Cyan 500
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      // Draw dark Zap Lightning Bolt in center
+      drawLightningBolt(ctx, 1024, '#09090d');
+
+      // 2. Foreground Canvas (for adaptive icon)
+      const fgCanvas = document.getElementById('foregroundCanvas');
+      const fgCtx = fgCanvas.getContext('2d');
+      fgCtx.clearRect(0, 0, 1024, 1024);
+      drawLightningBolt(fgCtx, 1024, '#09090d');
+
+      // Save Data URLs
+      window.iconDataUrl = canvas.toDataURL('image/png');
+      window.foregroundDataUrl = fgCanvas.toDataURL('image/png');
+
+      document.getElementById('status').innerText = 'DONE_GENERATING';
+    }
+
+    function drawLightningBolt(ctx, size, color) {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = size * 0.04;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+
+      // Lucide Zap coordinates scaled to size
+      // Path points in 24x24 unit grid:
+      // (13, 2) -> (3, 14) -> (12, 14) -> (11, 22) -> (21, 10) -> (12, 10)
+      const scale = size / 24;
+      const offsetX = 0;
+      const offsetY = 0;
+
+      ctx.beginPath();
+      ctx.moveTo(13 * scale, 2 * scale);
+      ctx.lineTo(3 * scale, 14 * scale);
+      ctx.lineTo(12 * scale, 14 * scale);
+      ctx.lineTo(11 * scale, 22 * scale);
+      ctx.lineTo(21 * scale, 10 * scale);
+      ctx.lineTo(12 * scale, 10 * scale);
+      ctx.closePath();
+
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    window.onload = drawIcon;
+  </script>
+</body>
+</html>

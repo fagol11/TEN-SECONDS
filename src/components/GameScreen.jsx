@@ -119,7 +119,7 @@ export default function GameScreen() {
   }
 
   return (
-    <div className="h-[calc(100dvh-70px)] sm:h-[calc(100dvh-80px)] max-h-[calc(100dvh-70px)] sm:max-h-[calc(100dvh-80px)] flex flex-col justify-between p-2.5 sm:p-4 max-w-lg mx-auto relative overflow-hidden">
+    <div className="h-[calc(100dvh-110px)] sm:h-[calc(100dvh-80px)] max-h-[calc(100dvh-110px)] sm:max-h-[calc(100dvh-80px)] flex flex-col justify-between p-2 sm:p-4 max-w-lg mx-auto relative overflow-hidden">
       
       {/* Album Blur Background Effect */}
       {currentTrack?.artworkUrl && (
@@ -169,10 +169,10 @@ export default function GameScreen() {
       </div>
 
       {/* Center 10s Timer & Audio Visualizer */}
-      <div className="my-auto flex flex-col items-center justify-center z-10 py-0.5 sm:py-2">
+      <div className="my-1 sm:my-auto flex flex-col items-center justify-center z-10 py-0.5 sm:py-2">
         <div
           onClick={playAudio}
-          className="relative w-22 h-22 sm:w-32 sm:h-32 flex items-center justify-center cursor-pointer group"
+          className="relative w-16 h-16 sm:w-28 sm:h-28 flex items-center justify-center cursor-pointer group"
           title="Clicca per riprodurre o riattivare l'audio"
         >
           {/* Circular Countdown SVG */}
@@ -204,12 +204,12 @@ export default function GameScreen() {
               <img
                 src={currentTrack.artworkUrl}
                 alt="Album Cover"
-                className="w-12 h-12 sm:w-20 sm:h-20 rounded-xl object-cover shadow-xl border border-white/20 animate-fadeIn"
+                className="w-10 h-10 sm:w-16 sm:h-16 rounded-xl object-cover shadow-xl border border-white/20 animate-fadeIn"
               />
             ) : (
               <>
-                <Volume2 className={`w-5 h-5 sm:w-6 sm:h-6 mb-0.5 group-hover:scale-110 transition-transform ${remainingTime <= 3.0 ? 'text-rose-400 animate-pulse' : 'text-emerald-400'}`} />
-                <span className="font-mono font-black text-lg sm:text-2xl text-white tracking-tight">
+                <Volume2 className={`w-4 h-4 sm:w-6 sm:h-6 mb-0.5 group-hover:scale-110 transition-transform ${remainingTime <= 3.0 ? 'text-rose-400 animate-pulse' : 'text-emerald-400'}`} />
+                <span className="font-mono font-black text-sm sm:text-xl text-white tracking-tight">
                   {remainingTime.toFixed(1)}s
                 </span>
               </>
@@ -219,12 +219,12 @@ export default function GameScreen() {
 
         {/* Dynamic Waveform Visualizer & Manual Play Audio Helper */}
         {!isAnswered && (
-          <div className="flex flex-col items-center gap-1 mt-1 sm:mt-2">
-            <div className="flex items-center gap-1.5 h-3 sm:h-4">
+          <div className="flex flex-col items-center gap-0.5 mt-0.5 sm:mt-2">
+            <div className="flex items-center gap-1.5 h-2.5 sm:h-4">
               {[0.4, 0.9, 0.6, 1.0, 0.5, 0.8, 0.3, 0.7, 0.9, 0.4].map((height, i) => (
                 <div
                   key={i}
-                  className="w-1.5 bg-emerald-400/80 rounded-full animate-ripple"
+                  className="w-1 bg-emerald-400/80 rounded-full animate-ripple"
                   style={{
                     height: `${height * 100}%`,
                     animationDelay: `${i * 0.15}s`
@@ -235,33 +235,33 @@ export default function GameScreen() {
 
             <button
               onClick={playAudio}
-              className="text-[10px] font-semibold text-emerald-400/90 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 px-2.5 py-0.5 rounded-full flex items-center gap-1 transition-all"
+              className="text-[9px] sm:text-[10px] font-semibold text-emerald-400/90 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 transition-all"
             >
-              <Volume2 className="w-3 h-3" /> Premi per ascoltare l'audio
+              <Volume2 className="w-2.5 h-2.5" /> Premi per ascoltare l'audio
             </button>
           </div>
         )}
 
         {/* Answer Feedback Banner */}
         {isAnswered && (
-          <div className="mt-2 sm:mt-3 animate-fadeIn text-center">
-            <div className={`inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full font-bold text-xs sm:text-sm mb-1 ${
+          <div className="mt-1 sm:mt-3 animate-fadeIn text-center">
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-4 sm:py-1.5 rounded-full font-bold text-[11px] sm:text-sm mb-0.5 ${
               answerFeedback === 'CORRECT' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' :
               answerFeedback === 'SKIPPED' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
               'bg-rose-500/20 text-rose-400 border border-rose-500/40'
             }`}>
-              {answerFeedback === 'CORRECT' && <CheckCircle className="w-4 h-4" />}
-              {answerFeedback === 'WRONG' && <XCircle className="w-4 h-4" />}
+              {answerFeedback === 'CORRECT' && <CheckCircle className="w-3.5 h-3.5" />}
+              {answerFeedback === 'WRONG' && <XCircle className="w-3.5 h-3.5" />}
               {answerFeedback === 'CORRECT' ? 'RISPOSTA ESATTA!' : answerFeedback === 'SKIPPED' ? 'BRANO SALTATO' : 'SBAGLIATO!'}
             </div>
             <div className="text-white font-bold text-xs sm:text-base leading-tight">{currentTrack.title}</div>
-            <div className="text-slate-400 text-[11px] sm:text-xs">{currentTrack.artist}</div>
+            <div className="text-slate-400 text-[10px] sm:text-xs">{currentTrack.artist}</div>
           </div>
         )}
       </div>
 
       {/* 4 Choices Grid */}
-      <div className="space-y-1.5 sm:space-y-2 z-10 w-full my-1 sm:my-2">
+      <div className="space-y-1 sm:space-y-2 z-10 w-full my-1 sm:my-2">
         {currentChoices && currentChoices.length > 0 ? (
           currentChoices.map((choice, idx) => {
             const isSelected = selectedChoice?.title === choice.title && selectedChoice?.artist === choice.artist;
@@ -284,7 +284,7 @@ export default function GameScreen() {
                 key={idx}
                 disabled={isAnswered}
                 onClick={() => submitAnswer(choice)}
-                className={`w-full p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl border text-left flex items-center justify-between transition-all active:scale-[0.98] ${cardStyle}`}
+                className={`w-full py-1.5 px-2.5 sm:py-3.5 sm:px-4 rounded-xl sm:rounded-2xl border text-left flex items-center justify-between transition-all active:scale-[0.98] ${cardStyle}`}
               >
                 <div className="pr-2 min-w-0 flex-1">
                   <div className="font-bold text-xs sm:text-sm leading-tight truncate">{choice.title}</div>
@@ -302,7 +302,7 @@ export default function GameScreen() {
       </div>
 
       {/* Bottom Controls */}
-      <div className="flex items-center justify-between mt-1 sm:mt-3 z-10 pt-1.5 sm:pt-2 border-t border-white/5 shrink-0">
+      <div className="flex items-center justify-between mt-0.5 sm:mt-3 z-10 pt-1 sm:pt-2 border-t border-white/5 shrink-0">
         <button
           onClick={skipRound}
           disabled={isAnswered}
@@ -310,15 +310,6 @@ export default function GameScreen() {
         >
           <SkipForward className="w-4 h-4" /> Salta Brano
         </button>
-
-        {isAnswered && (
-          <button
-            onClick={nextRound}
-            className="py-2 px-4 sm:py-2.5 sm:px-5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs font-display flex items-center gap-2 shadow-lg shadow-emerald-500/20 animate-pulse"
-          >
-            PROSSIMO BRANO &rarr;
-          </button>
-        )}
       </div>
 
       {/* Confirmation Modal for Restart / Quit */}

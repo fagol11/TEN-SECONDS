@@ -33,3 +33,4 @@ android/build
 android/.gradle
 android/captures
 android/app/src/main/assets/public
+*.apk
