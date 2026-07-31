@@ -145,7 +145,7 @@ export default function OnboardingScreen() {
       <div className="grid grid-cols-2 gap-3 w-full text-left text-xs text-slate-400">
         <div className="flex items-center gap-2 bg-white/5 p-3 rounded-xl border border-white/5">
           <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Estratti audio reali 30s scontrati con iTunes/Deezer</span>
+          <span>Estratti audio reali 30s sincronizzati con iTunes/Deezer</span>
         </div>
         <div className="flex items-center gap-2 bg-white/5 p-3 rounded-xl border border-white/5">
           <Radio className="w-4 h-4 text-cyan-400 shrink-0" />
