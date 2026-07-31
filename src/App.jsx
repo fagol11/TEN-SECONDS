@@ -13,6 +13,8 @@ import LivesModal from './components/LivesModal';
 import ConfettiBurst from './components/ConfettiBurst';
 import StreakPopup from './components/StreakPopup';
 
+import PlayGamesSidekick from './components/PlayGamesSidekick';
+
 function MainContent() {
   const { activeScreen, isLivesModalOpen, setIsLivesModalOpen, isConfettiActive, comboEvent } = useGame();
 
@@ -29,6 +31,7 @@ function MainContent() {
       <StreakPopup comboEvent={comboEvent} />
       <ConfettiBurst active={isConfettiActive} />
       <LivesModal isOpen={isLivesModalOpen} onClose={() => setIsLivesModalOpen(false)} />
+      {activeScreen !== 'ONBOARDING' && <PlayGamesSidekick />}
     </main>
   );
 }
