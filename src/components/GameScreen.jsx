@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { SkipForward, Flame, Award, CheckCircle, XCircle, RotateCcw, Home, Sparkles, Volume2, LogOut, AlertTriangle, X, Zap } from 'lucide-react';
+import { SkipForward, Flame, Award, CheckCircle, XCircle, RotateCcw, Home, Sparkles, Volume2, LogOut, AlertTriangle, X, Zap, Disc3 } from 'lucide-react';
 import LiveChallengeHUD from './LiveChallengeHUD';
 
 export default function GameScreen() {
@@ -212,83 +212,89 @@ export default function GameScreen() {
       {/* Center 10s Timer & Album Art on Answered */}
       <div className="my-auto flex flex-col items-center justify-center z-10 py-1 shrink-0">
         {!isAnswered ? (
-          <>
-            {prepCountdown > 0 ? (
-              <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex flex-col items-center justify-center">
-                {/* Glowing Pulse Ring */}
-                <div className="absolute inset-0 rounded-full border-4 border-emerald-500/30 animate-ping pointer-events-none" />
-                <div className="absolute inset-0 rounded-full border-4 border-emerald-400 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md shadow-2xl shadow-emerald-500/40">
-                  <span className="text-5xl sm:text-6xl font-black font-display text-emerald-400 tracking-tighter animate-bounce">
+          <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center select-none">
+            {/* SVG Ring Concentrico Unico per tutte le fasi */}
+            <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 120 120">
+              {/* Sfondo cerchio scuro */}
+              <circle
+                cx="60"
+                cy="60"
+                r="52"
+                className="stroke-slate-800/60 fill-slate-950/90"
+                strokeWidth="10"
+              />
+
+              {/* FASE 1: DIGGING / BUFFERING (Anello Ciano a rotazione continua concentrico al cerchio principale) */}
+              {isAudioLoading ? (
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  className="stroke-cyan-400 origin-center animate-spin"
+                  strokeWidth="10"
+                  strokeDasharray="90 236"
+                  strokeLinecap="round"
+                  fill="transparent"
+                  style={{ animationDuration: '1.2s' }}
+                />
+              ) : prepCountdown > 0 ? (
+                /* FASE 2: CONTO ALLA ROVESCIA FLUIDO 3..2..1 (Anello Amber fluido) */
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  className="stroke-amber-400 transition-all duration-300 ease-linear"
+                  strokeWidth="10"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={circumference - (prepCountdown / 3.0) * circumference}
+                  strokeLinecap="round"
+                  fill="transparent"
+                />
+              ) : (
+                /* FASE 3: TIMER 10S GIOCO ATTIVO (Smeraldo -> Amber -> Rosa) */
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  className={`transition-all duration-75 ease-linear ${
+                    remainingTime <= 3 ? 'stroke-rose-500' : remainingTime <= 5 ? 'stroke-amber-400' : 'stroke-emerald-400'
+                  }`}
+                  strokeWidth="10"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                  fill="transparent"
+                />
+              )}
+            </svg>
+
+            {/* Contenuto interno al cerchio perfettamente centrato */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
+              {isAudioLoading ? (
+                <div className="flex flex-col items-center justify-center gap-1.5 animate-pulse">
+                  <Disc3 className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400 animate-spin" style={{ animationDuration: '3s' }} />
+                  <span className="text-xs sm:text-sm font-black tracking-widest text-cyan-400 uppercase font-display drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]">
+                    DIGGING...
+                  </span>
+                </div>
+              ) : prepCountdown > 0 ? (
+                <div key={prepCountdown} className="flex flex-col items-center justify-center animate-numberPop">
+                  <span className="text-5xl sm:text-6xl font-black font-display text-amber-400 tracking-tighter drop-shadow-[0_0_15px_rgba(251,191,36,0.7)]">
                     {prepCountdown}
                   </span>
-                  <span className="text-[11px] font-black uppercase text-amber-300 tracking-widest mt-1 flex items-center gap-1">
+                  <span className="text-[10px] sm:text-[11px] font-black uppercase text-amber-300 tracking-widest mt-0.5 flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" /> PREPARATI!
                   </span>
                 </div>
-              </div>
-            ) : (
-              <div
-                onClick={playAudio}
-                className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center cursor-pointer group"
-                title="Clicca per riprodurre o riattivare l'audio"
-              >
-                {/* Circular Countdown SVG */}
-                <svg className="w-full h-full -rotate-90 transform group-hover:scale-105 transition-transform" viewBox="0 0 120 120">
-                  <circle
-                    cx="60"
-                    cy="60"
-                    r="52"
-                    className="stroke-slate-800/80 fill-slate-950/90"
-                    strokeWidth="10"
-                  />
-                  <circle
-                    cx="60"
-                    cy="60"
-                    r="52"
-                    className={`transition-all duration-75 ease-linear ${
-                      remainingTime <= 3 ? 'stroke-rose-500' : remainingTime <= 5 ? 'stroke-amber-400' : 'stroke-emerald-400'
-                    }`}
-                    strokeWidth="10"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                    fill="transparent"
-                  />
-                </svg>
-
-                {/* Timer Digits or Audio Loading Spinner */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  {isAudioLoading ? (
-                    <div className="flex flex-col items-center justify-center gap-1 animate-pulse">
-                      <div className="w-7 h-7 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-1" />
-                      <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Audio...</span>
-                    </div>
-                  ) : (
-                    <span className={`font-mono font-black text-3xl sm:text-5xl tracking-tighter ${
-                      remainingTime <= 3 ? 'text-rose-400 animate-ping' : remainingTime <= 5 ? 'text-amber-300' : 'text-amber-400'
-                    }`}>
-                      {remainingTime.toFixed(1)}s
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div className="mt-2 text-center">
-              {prepCountdown > 0 ? (
-                <div className="text-xs text-emerald-300 font-bold tracking-wider animate-pulse flex items-center justify-center gap-1">
-                  <Volume2 className="w-3.5 h-3.5 text-amber-400" /> Il brano sta per partire...
-                </div>
               ) : (
-                <button
-                  onClick={playAudio}
-                  className="text-xs text-slate-300 hover:text-emerald-400 inline-flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10 shadow-sm"
-                >
-                  <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> Premi per riascoltare
-                </button>
+                <span className={`font-mono font-black text-3xl sm:text-5xl tracking-tighter ${
+                  remainingTime <= 3 ? 'text-rose-400 animate-ping' : remainingTime <= 5 ? 'text-amber-300' : 'text-amber-400'
+                }`}>
+                  {remainingTime.toFixed(1)}s
+                </span>
               )}
             </div>
-          </>
+          </div>
         ) : (
           /* Album Cover Art & Song Info immediately below circle */
           <div className="flex flex-col items-center animate-fadeIn text-center">
