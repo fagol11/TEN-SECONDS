@@ -345,19 +345,44 @@ export function GameProvider({ children }) {
         });
 
       } else if (type === 'wrong') {
-        // Retro Arcade Double-Bip (Simpatica & Chiara - E4 -> C4)
+        // High-Volume, Punchy Arcade Double-Tone (E4 329.63Hz -> C4 261.63Hz)
         [329.63, 261.63].forEach((freq, idx) => {
-          const t = now + idx * 0.08;
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.18, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(t);
-          osc.stop(t + 0.09);
+          const t = now + idx * 0.11;
+
+          // Main Crisp Wave (Sawtooth + Lowpass filter at Gain 0.75)
+          const osc1 = ctx.createOscillator();
+          const filter = ctx.createBiquadFilter();
+          const gain1 = ctx.createGain();
+          osc1.type = 'sawtooth';
+          osc1.frequency.setValueAtTime(freq, t);
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(2400, t);
+          filter.frequency.exponentialRampToValueAtTime(350, t + 0.15);
+
+          gain1.gain.setValueAtTime(0.75, t);
+          gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+
+          osc1.connect(filter);
+          filter.connect(gain1);
+          gain1.connect(ctx.destination);
+
+          osc1.start(t);
+          osc1.stop(t + 0.16);
+
+          // Deep Sine Bass Layer for Solid Body (Gain 0.50)
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(freq * 0.5, t);
+          gain2.gain.setValueAtTime(0.5, t);
+          gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+
+          osc2.connect(gain2);
+          gain2.connect(ctx.destination);
+
+          osc2.start(t);
+          osc2.stop(t + 0.16);
         });
       } else if (type === 'prep_tick') {
         const osc = ctx.createOscillator();
