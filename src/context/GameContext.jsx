@@ -210,9 +210,23 @@ export function GameProvider({ children }) {
   const [roundScore, setRoundScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
-  const [stats, setStats] = useState({ correct: 0, wrong: 0, totalTimeMs: 0 });
+  const [stats, setStats] = useState({ correct: 0, wrong: 0, totalTimeMs: 0, correctTimeMs: 0 });
 
   const [remainingTime, setRemainingTime] = useState(10.0);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
+  const [prepCountdown, setPrepCountdown] = useState(0); // 3 | 2 | 1 | 0
+  const [scoreDetails, setScoreDetails] = useState({
+    correctCount: 0,
+    wrongCount: 0,
+    basePoints: 0,
+    avgCorrectTimeSec: 0,
+    speedMultiplier: 1.0,
+    speedBonusPoints: 0,
+    streakBonusPoints: 0,
+    dailyBonus: 0,
+    finalTotalScore: 0,
+  });
+
   const [roundStatus, setRoundStatus] = useState('IDLE'); // 'IDLE' | 'PLAYING' | 'ANSWERED' | 'SUMMARY'
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [answerFeedback, setAnswerFeedback] = useState(null); // 'CORRECT' | 'WRONG' | 'TIMEOUT' | 'SKIPPED'
@@ -220,7 +234,42 @@ export function GameProvider({ children }) {
   // --- AUDIO PLAYER & TIMER REFS ---
   const audioRef = useRef(new Audio());
   const timerIntervalRef = useRef(null);
+  const prepIntervalRef = useRef(null);
   const startTimeRef = useRef(null);
+
+  const clearPrepInterval = () => {
+    if (prepIntervalRef.current) {
+      clearInterval(prepIntervalRef.current);
+      prepIntervalRef.current = null;
+    }
+  };
+
+  // Helper formula calcolo punteggio globale
+  const computeScoreDetails = (currentStats, maxStreakCount, mode) => {
+    const correctCount = currentStats.correct;
+    const basePoints = correctCount * 1000;
+    const avgCorrectTimeSec = correctCount > 0 
+      ? Number((currentStats.correctTimeMs / 1000 / correctCount).toFixed(1))
+      : 10.0;
+    const rawMultiplier = 1.0 + Math.max(0, (10.0 - avgCorrectTimeSec) / 10.0) * 0.8;
+    const speedMultiplier = Number(rawMultiplier.toFixed(2));
+    const speedBonusPoints = Math.round(basePoints * (speedMultiplier - 1.0));
+    const streakBonusPoints = maxStreakCount * 100;
+    const dailyBonus = (mode === 'DAILY' && correctCount >= 10) ? 5000 : 0;
+    const finalTotalScore = basePoints + speedBonusPoints + streakBonusPoints + dailyBonus;
+
+    return {
+      correctCount,
+      wrongCount: currentStats.wrong,
+      basePoints,
+      avgCorrectTimeSec,
+      speedMultiplier,
+      speedBonusPoints,
+      streakBonusPoints,
+      dailyBonus,
+      finalTotalScore,
+    };
+  };
 
   // Shared AudioContext for rich synth sound effects
   const audioCtxRef = useRef(null);
@@ -317,6 +366,17 @@ export function GameProvider({ children }) {
         
         subOsc.start(now);
         subOsc.stop(now + 0.32);
+      } else if (type === 'prep_tick') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, now); // D5 tick
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.09);
       }
     } catch (e) {
       console.warn('Sound effect synth error:', e);
@@ -325,6 +385,7 @@ export function GameProvider({ children }) {
 
   // --- TIMER MANAGEMENT ---
   const stopTimer = () => {
+    clearPrepInterval();
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
@@ -341,6 +402,7 @@ export function GameProvider({ children }) {
 
   const startRoundTimer = () => {
     stopTimer();
+    setIsAudioLoading(false);
     setRemainingTime(10.0);
     const startMs = Date.now();
     startTimeRef.current = startMs;
@@ -443,7 +505,18 @@ export function GameProvider({ children }) {
     setRoundScore(0);
     setStreak(0);
     setMaxStreak(0);
-    setStats({ correct: 0, wrong: 0, totalTimeMs: 0 });
+    setStats({ correct: 0, wrong: 0, totalTimeMs: 0, correctTimeMs: 0 });
+    setScoreDetails({
+      correctCount: 0,
+      wrongCount: 0,
+      basePoints: 0,
+      avgCorrectTimeSec: 0,
+      speedMultiplier: 1.0,
+      speedBonusPoints: 0,
+      streakBonusPoints: 0,
+      dailyBonus: 0,
+      finalTotalScore: 0,
+    });
 
     setActiveScreen(mode === 'CALIBRATION' ? 'CALIBRATION' : 'GAME');
     setupRound(0, pool, ALL_MASTER_TRACKS);
@@ -505,6 +578,8 @@ export function GameProvider({ children }) {
   // --- SETUP INDIVIDUAL ROUND WITH AUDIO FALLBACK & RETRY ---
   const setupRound = async (index, pool, allPool) => {
     stopAudio();
+    clearPrepInterval();
+
     if (index >= pool.length) {
       endGame();
       return;
@@ -515,18 +590,18 @@ export function GameProvider({ children }) {
 
     setSelectedChoice(null);
     setAnswerFeedback(null);
+    setIsAudioLoading(true);
+    setRemainingTime(10.0);
     setRoundStatus('PLAYING');
     setCurrentChoices(choices);
 
-    // Audio & Artwork setup
+    let src = track.previewUrl;
     try {
-      let src = track.previewUrl;
       if (track.localAudioKey) {
         const localUrl = await getOfflineAudioUrl(track.localAudioKey);
         if (localUrl) src = localUrl;
       }
 
-      // Dynamic fallback if previewUrl or artwork is missing
       if (!src || !track.artworkUrl) {
         const resolved = await resolveAudioPreview(track.artist, track.title);
         if (resolved) {
@@ -541,51 +616,35 @@ export function GameProvider({ children }) {
         audioRef.current.src = fastSrc;
         audioRef.current.currentTime = 0;
         audioRef.current.volume = 1.0;
-
-        let hasStartedTimer = false;
-        const triggerTimerOnce = () => {
-          if (!hasStartedTimer) {
-            hasStartedTimer = true;
-            startRoundTimer();
-          }
-        };
-
-        // Start 10s countdown exact moment audio emits sound
-        audioRef.current.onplaying = triggerTimerOnce;
-
-        // Safety fallback timer if onplaying is delayed
-        setTimeout(triggerTimerOnce, 600);
-        
-        // Auto fallback if playback fails or errors out
-        audioRef.current.onerror = async () => {
-          console.warn('[Audio] Primary URL error, fetching dynamic fallback for:', track.title);
-          triggerTimerOnce();
-          const fallback = await resolveAudioPreview(track.artist, track.title);
-          if (fallback && fallback.previewUrl && fallback.previewUrl !== src) {
-            audioRef.current.src = getFastAudioUrl(fallback.previewUrl);
-            audioRef.current.play().catch(e => console.warn('[Audio] Fallback play error:', e));
-          }
-        };
-
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(async (err) => {
-            console.warn('[Audio] Autoplay blocked or error, trying iTunes fallback:', err);
-            triggerTimerOnce();
-            const fallback = await resolveAudioPreview(track.artist, track.title);
-            if (fallback && fallback.previewUrl && fallback.previewUrl !== src) {
-              audioRef.current.src = getFastAudioUrl(fallback.previewUrl);
-              audioRef.current.play().catch(e => console.warn('[Audio] Retry play failed:', e));
-            }
-          });
-        }
-      } else {
-        startRoundTimer();
+        audioRef.current.load();
       }
     } catch (e) {
-      console.warn('Audio play failed:', e);
-      startRoundTimer();
+      console.warn('Audio prep error:', e);
     }
+
+    setIsAudioLoading(false);
+
+    // Start 3..2..1 Preparation Countdown
+    let currentCount = 3;
+    setPrepCountdown(3);
+    playSoundEffect('prep_tick');
+
+    prepIntervalRef.current = setInterval(() => {
+      currentCount -= 1;
+      setPrepCountdown(currentCount);
+
+      if (currentCount > 0) {
+        playSoundEffect('prep_tick');
+      } else {
+        clearPrepInterval();
+        setPrepCountdown(0);
+
+        if (src && audioRef.current) {
+          audioRef.current.play().catch(e => console.warn('[Audio] Play error after prep:', e));
+        }
+        startRoundTimer();
+      }
+    }, 750);
 
     // Background pre-buffering for next 2 tracks for zero-delay instant playback
     setTimeout(() => {
@@ -657,7 +716,7 @@ export function GameProvider({ children }) {
 
   // --- HANDLE USER CHOICE ---
   const submitAnswer = (choice) => {
-    if (roundStatus !== 'PLAYING') return;
+    if (roundStatus !== 'PLAYING' || prepCountdown > 0) return;
 
     stopAudio();
     setSelectedChoice(choice);
@@ -667,37 +726,34 @@ export function GameProvider({ children }) {
     const isCorrect = choice.title === currentTrack.title && choice.artist === currentTrack.artist;
 
     if (isCorrect) {
-      // Base score logic: Daily challenge uses basic 1,000 PT per correct song
-      let points = 1000;
       const newStreak = streak + 1;
+      const updatedMaxStreak = Math.max(newStreak, maxStreak);
 
-      if (gameMode === 'DAILY') {
-        points = 1000; // Punteggio basico per canzone
-      } else {
-        const speedMultiplier = 0.5 + 0.5 * (remainingTime / 10.0);
-        const streakMultiplier = 1 + (newStreak - 1) * 0.15;
-        points = Math.round(1000 * speedMultiplier * streakMultiplier);
+      const newStats = {
+        ...stats,
+        correct: stats.correct + 1,
+        totalTimeMs: stats.totalTimeMs + (timeSpent * 1000),
+        correctTimeMs: stats.correctTimeMs + (timeSpent * 1000),
+      };
+      setStats(newStats);
+
+      const details = computeScoreDetails(newStats, updatedMaxStreak, gameMode);
+      setScoreDetails(details);
+      setRoundScore(details.finalTotalScore);
+
+      if (matchSessionRef.current) {
+        matchSessionRef.current.sendScoreUpdate({
+          score: details.finalTotalScore,
+          trackIndex,
+          streak: newStreak,
+        });
       }
 
-      setRoundScore(prev => {
-        const newScore = prev + points;
-        // Broadcast live score update to opponent
-        if (matchSessionRef.current) {
-          matchSessionRef.current.sendScoreUpdate({
-            score: newScore,
-            trackIndex,
-            streak: newStreak,
-          });
-        }
-        return newScore;
-      });
       setStreak(newStreak);
       if (newStreak > maxStreak) setMaxStreak(newStreak);
-      setStats(prev => ({ ...prev, correct: prev.correct + 1, totalTimeMs: prev.totalTimeMs + (timeSpent * 1000) }));
       setAnswerFeedback('CORRECT');
       playSoundEffect('correct');
 
-      // Arcade Streak Combo Text Animation
       let titleText = 'NICE!';
       if (newStreak === 1) {
         const praiseList = ['NICE! 🎵', 'GREAT! ⚡', 'GOOD! 🌟', 'EXCELLENT! 🎯'];
@@ -712,13 +768,23 @@ export function GameProvider({ children }) {
         id: Date.now(),
         streak: newStreak,
         title: titleText,
-        points: points
+        points: 1000
       });
 
       triggerConfetti();
     } else {
+      const newStats = {
+        ...stats,
+        wrong: stats.wrong + 1,
+        totalTimeMs: stats.totalTimeMs + (timeSpent * 1000),
+      };
+      setStats(newStats);
+
+      const details = computeScoreDetails(newStats, maxStreak, gameMode);
+      setScoreDetails(details);
+      setRoundScore(details.finalTotalScore);
+
       setStreak(0);
-      setStats(prev => ({ ...prev, wrong: prev.wrong + 1, totalTimeMs: prev.totalTimeMs + (timeSpent * 1000) }));
       setAnswerFeedback('WRONG');
       playSoundEffect('wrong');
     }
@@ -729,7 +795,7 @@ export function GameProvider({ children }) {
 
   // --- SKIP ROUND ---
   const skipRound = () => {
-    if (roundStatus !== 'PLAYING') return;
+    if (roundStatus !== 'PLAYING' || prepCountdown > 0) return;
     stopAudio();
     setStreak(0);
     setAnswerFeedback('SKIPPED');
@@ -741,7 +807,16 @@ export function GameProvider({ children }) {
   const handleTimeout = () => {
     stopAudio();
     setStreak(0);
-    setStats(prev => ({ ...prev, wrong: prev.wrong + 1, totalTimeMs: prev.totalTimeMs + 10000 }));
+    const newStats = {
+      ...stats,
+      wrong: stats.wrong + 1,
+      totalTimeMs: stats.totalTimeMs + 10000,
+    };
+    setStats(newStats);
+    const details = computeScoreDetails(newStats, maxStreak, gameMode);
+    setScoreDetails(details);
+    setRoundScore(details.finalTotalScore);
+
     setAnswerFeedback('TIMEOUT');
     playSoundEffect('wrong');
     setRoundStatus('ANSWERED');
@@ -911,6 +986,9 @@ export function GameProvider({ children }) {
         currentTrack: trackList[trackIndex] || null,
         currentChoices,
         remainingTime,
+        isAudioLoading,
+        prepCountdown,
+        scoreDetails,
         roundStatus,
         selectedChoice,
         answerFeedback,

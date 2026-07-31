@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { SkipForward, Flame, Award, CheckCircle, XCircle, RotateCcw, Home, Sparkles, Volume2, LogOut, AlertTriangle, X } from 'lucide-react';
+import { SkipForward, Flame, Award, CheckCircle, XCircle, RotateCcw, Home, Sparkles, Volume2, LogOut, AlertTriangle, X, Zap } from 'lucide-react';
 import LiveChallengeHUD from './LiveChallengeHUD';
 
 export default function GameScreen() {
@@ -12,6 +12,10 @@ export default function GameScreen() {
     currentTrack,
     currentChoices,
     remainingTime,
+    isAudioLoading,
+    prepCountdown,
+    scoreDetails,
+    maxStreak,
     roundStatus,
     selectedChoice,
     answerFeedback,
@@ -71,36 +75,60 @@ export default function GameScreen() {
           {currentPlaylist?.title || 'Playlist di Gioco'}
         </p>
 
-        {/* Score Card */}
-        <div className="w-full glass-card p-6 rounded-2xl border border-white/10 mb-6">
-          {gameMode === 'DAILY' && stats.correct >= 10 && (
-            <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-teal-500/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-2 shadow-lg animate-pulse">
-              <Award className="w-5 h-5 text-amber-400 shrink-0" />
-              <span>🎯 10/10 INDOVINATE! PUNTEGGIO MAGGIORATO (+5.000 PT)</span>
+        {/* Score Breakdown Card */}
+        <div className="w-full glass-card p-5 rounded-2xl border border-white/10 mb-6 text-left space-y-3 shadow-xl">
+          <div className="text-center pb-2 border-b border-white/10">
+            <div className="text-[11px] uppercase font-bold text-slate-400 tracking-wider">Punteggio Finale Calcolato</div>
+            <div className="text-4xl sm:text-5xl font-black font-mono text-emerald-400 mt-1">
+              {(scoreDetails?.finalTotalScore || roundScore).toLocaleString('it-IT')} PT
             </div>
-          )}
-
-          {gameMode === 'DAILY' && stats.correct < 10 && (
-            <div className="mb-4 p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 font-semibold text-xs text-center">
-              Punteggio Basico ({roundScore.toLocaleString('it-IT')} PT). Indovina tutte e 10 le canzoni per attivare il <span className="text-amber-400 font-bold">Punteggio Maggiorato</span>!
-            </div>
-          )}
-
-          <div className="text-xs uppercase font-bold text-slate-400 mb-1">Punteggio Totale Finale</div>
-          <div className="text-5xl font-black font-mono text-emerald-400 mb-4">
-            {(roundScore + (gameMode === 'DAILY' && stats.correct >= 10 ? 5000 : 0)).toLocaleString('it-IT')} PT
           </div>
 
-          <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/10 text-xs">
-            <div className="bg-white/5 p-2.5 rounded-xl">
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between bg-white/5 p-2.5 rounded-xl border border-white/5">
+              <span className="text-slate-300 font-medium">🎯 Risposte Corrette ({scoreDetails?.correctCount || stats.correct}x)</span>
+              <span className="font-mono font-bold text-emerald-400">+{(scoreDetails?.basePoints || (stats.correct * 1000)).toLocaleString('it-IT')} PT</span>
+            </div>
+
+            <div className="flex items-center justify-between bg-white/5 p-2.5 rounded-xl border border-cyan-500/20">
+              <div className="flex flex-col">
+                <span className="text-cyan-300 font-bold flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 text-cyan-400" /> Coeff. Rapidità (x{scoreDetails?.speedMultiplier || 1.0})
+                </span>
+                <span className="text-[10px] text-slate-400">Tempo medio risposte esatte: {scoreDetails?.avgCorrectTimeSec || 0}s</span>
+              </div>
+              <span className="font-mono font-bold text-cyan-400">+{(scoreDetails?.speedBonusPoints || 0).toLocaleString('it-IT')} PT</span>
+            </div>
+
+            {(scoreDetails?.streakBonusPoints > 0 || maxStreak > 0) && (
+              <div className="flex items-center justify-between bg-white/5 p-2.5 rounded-xl border border-amber-500/20">
+                <span className="text-amber-300 font-medium flex items-center gap-1">
+                  <Flame className="w-3.5 h-3.5 text-amber-400" /> Bonus Serie Max ({maxStreak}x)
+                </span>
+                <span className="font-mono font-bold text-amber-400">+{(scoreDetails?.streakBonusPoints || (maxStreak * 100)).toLocaleString('it-IT')} PT</span>
+              </div>
+            )}
+
+            {gameMode === 'DAILY' && stats.correct >= 10 && (
+              <div className="flex items-center justify-between bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/30">
+                <span className="text-amber-300 font-bold flex items-center gap-1">
+                  <Award className="w-3.5 h-3.5 text-amber-400" /> Bonus 10/10 Sfida Daily
+                </span>
+                <span className="font-mono font-bold text-amber-400">+5.000 PT</span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 text-xs text-center">
+            <div className="bg-white/5 p-2 rounded-xl">
               <div className="text-emerald-400 font-bold text-base">{stats.correct}</div>
               <div className="text-slate-400 text-[10px]">Corrette</div>
             </div>
-            <div className="bg-white/5 p-2.5 rounded-xl">
+            <div className="bg-white/5 p-2 rounded-xl">
               <div className="text-rose-400 font-bold text-base">{stats.wrong}</div>
               <div className="text-slate-400 text-[10px]">Sbagliate</div>
             </div>
-            <div className="bg-white/5 p-2.5 rounded-xl">
+            <div className="bg-white/5 p-2 rounded-xl">
               <div className="text-amber-400 font-bold text-base">{(stats.totalTimeMs / 1000).toFixed(1)}s</div>
               <div className="text-slate-400 text-[10px]">Tempo Totale</div>
             </div>
@@ -185,52 +213,80 @@ export default function GameScreen() {
       <div className="my-auto flex flex-col items-center justify-center z-10 py-1 shrink-0">
         {!isAnswered ? (
           <>
-            <div
-              onClick={playAudio}
-              className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center cursor-pointer group"
-              title="Clicca per riprodurre o riattivare l'audio"
-            >
-              {/* Circular Countdown SVG */}
-              <svg className="w-full h-full -rotate-90 transform group-hover:scale-105 transition-transform" viewBox="0 0 120 120">
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="52"
-                  className="stroke-slate-800/80 fill-slate-950/90"
-                  strokeWidth="10"
-                />
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="52"
-                  className={`transition-all duration-75 ease-linear ${
-                    remainingTime <= 3 ? 'stroke-rose-500' : remainingTime <= 5 ? 'stroke-amber-400' : 'stroke-emerald-400'
-                  }`}
-                  strokeWidth="10"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round"
-                  fill="transparent"
-                />
-              </svg>
-
-              {/* Timer Digits */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className={`font-mono font-black text-3xl sm:text-5xl tracking-tighter ${
-                  remainingTime <= 3 ? 'text-rose-400 animate-ping' : remainingTime <= 5 ? 'text-amber-300' : 'text-amber-400'
-                }`}>
-                  {remainingTime.toFixed(1)}s
-                </span>
+            {prepCountdown > 0 ? (
+              <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex flex-col items-center justify-center">
+                {/* Glowing Pulse Ring */}
+                <div className="absolute inset-0 rounded-full border-4 border-emerald-500/30 animate-ping pointer-events-none" />
+                <div className="absolute inset-0 rounded-full border-4 border-emerald-400 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md shadow-2xl shadow-emerald-500/40">
+                  <span className="text-5xl sm:text-6xl font-black font-display text-emerald-400 tracking-tighter animate-bounce">
+                    {prepCountdown}
+                  </span>
+                  <span className="text-[11px] font-black uppercase text-amber-300 tracking-widest mt-1 flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" /> PREPARATI!
+                  </span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div
+                onClick={playAudio}
+                className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center cursor-pointer group"
+                title="Clicca per riprodurre o riattivare l'audio"
+              >
+                {/* Circular Countdown SVG */}
+                <svg className="w-full h-full -rotate-90 transform group-hover:scale-105 transition-transform" viewBox="0 0 120 120">
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="52"
+                    className="stroke-slate-800/80 fill-slate-950/90"
+                    strokeWidth="10"
+                  />
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="52"
+                    className={`transition-all duration-75 ease-linear ${
+                      remainingTime <= 3 ? 'stroke-rose-500' : remainingTime <= 5 ? 'stroke-amber-400' : 'stroke-emerald-400'
+                    }`}
+                    strokeWidth="10"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    fill="transparent"
+                  />
+                </svg>
+
+                {/* Timer Digits or Audio Loading Spinner */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                  {isAudioLoading ? (
+                    <div className="flex flex-col items-center justify-center gap-1 animate-pulse">
+                      <div className="w-7 h-7 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-1" />
+                      <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Audio...</span>
+                    </div>
+                  ) : (
+                    <span className={`font-mono font-black text-3xl sm:text-5xl tracking-tighter ${
+                      remainingTime <= 3 ? 'text-rose-400 animate-ping' : remainingTime <= 5 ? 'text-amber-300' : 'text-amber-400'
+                    }`}>
+                      {remainingTime.toFixed(1)}s
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="mt-2 text-center">
-              <button
-                onClick={playAudio}
-                className="text-xs text-slate-300 hover:text-emerald-400 inline-flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10 shadow-sm"
-              >
-                <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> Premi per riascoltare
-              </button>
+              {prepCountdown > 0 ? (
+                <div className="text-xs text-emerald-300 font-bold tracking-wider animate-pulse flex items-center justify-center gap-1">
+                  <Volume2 className="w-3.5 h-3.5 text-amber-400" /> Il brano sta per partire...
+                </div>
+              ) : (
+                <button
+                  onClick={playAudio}
+                  className="text-xs text-slate-300 hover:text-emerald-400 inline-flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/10 shadow-sm"
+                >
+                  <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> Premi per riascoltare
+                </button>
+              )}
             </div>
           </>
         ) : (
@@ -242,21 +298,23 @@ export default function GameScreen() {
                 <img
                   src={currentTrack.artworkUrl}
                   alt={currentTrack.title}
-                  className="w-full h-full object-cover rounded-2xl sm:rounded-3xl"
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-emerald-400 bg-gradient-to-tr from-emerald-950 to-slate-900">
-                  <Music className="w-12 h-12 mb-1" />
-                  <span className="text-[10px] font-bold text-slate-400">Ten Seconds</span>
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 bg-slate-950/80">
+                  <Sparkles className="w-8 h-8 mb-1 text-slate-500" />
+                  <span className="text-[10px] font-bold">10 SECONDS</span>
                 </div>
               )}
             </div>
 
-            {/* Answer Feedback & Song Details right below album cover */}
-            <div className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full font-bold text-xs mb-1 ${
-              answerFeedback === 'CORRECT' ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/50' :
-              answerFeedback === 'SKIPPED' ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50' :
-              'bg-rose-500/25 text-rose-300 border border-rose-500/50'
+            {/* Feedback badge */}
+            <div className={`mb-1.5 px-3 py-1 rounded-full text-xs font-black tracking-wide uppercase inline-flex items-center gap-1 shadow-md ${
+              answerFeedback === 'CORRECT'
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                : answerFeedback === 'SKIPPED'
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
             }`}>
               {answerFeedback === 'CORRECT' && <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />}
               {answerFeedback === 'WRONG' && <XCircle className="w-3.5 h-3.5 text-rose-400" />}
@@ -278,7 +336,9 @@ export default function GameScreen() {
 
             let cardStyle = 'glass-card text-slate-100 hover:border-emerald-500/50';
 
-            if (isAnswered) {
+            if (prepCountdown > 0) {
+              cardStyle = 'glass-card text-slate-400 opacity-60 border-white/5 pointer-events-none';
+            } else if (isAnswered) {
               if (isCorrectChoice) {
                 cardStyle = 'bg-emerald-500/25 border-emerald-500 text-emerald-200 font-bold shadow-lg shadow-emerald-500/20';
               } else if (isSelected && !isCorrectChoice) {
@@ -291,7 +351,7 @@ export default function GameScreen() {
             return (
               <button
                 key={idx}
-                disabled={isAnswered}
+                disabled={isAnswered || prepCountdown > 0}
                 onClick={() => submitAnswer(choice)}
                 className={`w-full py-2.5 px-3.5 sm:py-3.5 sm:px-4 rounded-xl sm:rounded-2xl border text-left flex items-center justify-between transition-all active:scale-[0.98] ${cardStyle}`}
               >
@@ -313,7 +373,7 @@ export default function GameScreen() {
         <div className="flex justify-end pt-1">
           <button
             onClick={skipRound}
-            disabled={isAnswered}
+            disabled={isAnswered || prepCountdown > 0}
             className="text-xs font-black tracking-wider text-slate-950 hover:text-white flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 border border-emerald-300 transition-all disabled:opacity-30 shadow-lg shadow-emerald-500/25 active:scale-95"
           >
             <SkipForward className="w-4 h-4 text-slate-950 fill-current" /> SALTA IL BRANO
