@@ -122,6 +122,17 @@ export function GameProvider({ children }) {
     document.documentElement.classList.remove('light');
   }, []);
 
+  // [FIX E] Resume AudioContext on iOS/Safari when app returns from background
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && audioCtxRef.current?.state === 'suspended') {
+        audioCtxRef.current.resume().catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   // Save user changes to LocalStorage
   useEffect(() => {
     localStorage.setItem('ten_seconds_user', JSON.stringify(user));
@@ -392,12 +403,13 @@ export function GameProvider({ children }) {
     }
   };
 
-  // Web Audio API buffer store & active node ref
+  // Web Audio API buffer store, active node ref & playback GainNode
   const audioBufferMapRef = useRef(new Map());
   const activeSourceNodeRef = useRef(null);
+  const playbackGainRef = useRef(null);
 
-  const stopAudio = () => {
-    stopTimer();
+  // [FIX BUG2] Stops ONLY audio playback without touching the game timer
+  const stopAudioPlayback = () => {
     if (activeSourceNodeRef.current) {
       try {
         activeSourceNodeRef.current.stop();
@@ -405,10 +417,20 @@ export function GameProvider({ children }) {
       } catch (e) {}
       activeSourceNodeRef.current = null;
     }
+    if (playbackGainRef.current) {
+      try { playbackGainRef.current.disconnect(); } catch (e) {}
+      playbackGainRef.current = null;
+    }
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
+  };
+
+  // Full stop: audio + timer + prep interval
+  const stopAudio = () => {
+    stopTimer();
+    stopAudioPlayback();
   };
 
   // Web Audio API Preload Pipeline: In-memory AudioBuffer decoding
@@ -451,17 +473,19 @@ export function GameProvider({ children }) {
     }
   };
 
-  // Preload entire match pool in background with concurrency
-  const preloadMatchPoolBuffers = (pool) => {
+  // [FIX A] Preload match pool with limited concurrency (max 3 parallel fetches)
+  const preloadMatchPoolBuffers = async (pool) => {
     if (!pool || !Array.isArray(pool)) return;
-    pool.forEach(track => {
-      preloadTrackAudioBuffer(track);
-    });
+    const CONCURRENCY = 3;
+    for (let i = 0; i < pool.length; i += CONCURRENCY) {
+      const batch = pool.slice(i, i + CONCURRENCY);
+      await Promise.allSettled(batch.map(t => preloadTrackAudioBuffer(t)));
+    }
   };
 
-  // Instant Playback via Web Audio API (0ms Latency)
+  // [FIX D + C] Instant Playback via Web Audio API (0ms Latency) with GainNode fade-in & onended cleanup
   const playTrackAudioBuffer = async (track) => {
-    stopAudio();
+    stopAudioPlayback(); // [FIX BUG2] Only stop audio, not the timer
     const ctx = getAudioContext();
     let src = track?.previewUrl;
     if (track?.localAudioKey) {
@@ -481,9 +505,28 @@ export function GameProvider({ children }) {
       try {
         const source = ctx.createBufferSource();
         source.buffer = cachedBuffer;
-        source.connect(ctx.destination);
+
+        // [FIX D] GainNode for smooth 50ms fade-in (avoids audio click artifact)
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0, ctx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(1.0, ctx.currentTime + 0.05);
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        playbackGainRef.current = gainNode;
+
         source.start(0);
         activeSourceNodeRef.current = source;
+
+        // [FIX C] Auto-cleanup when preview naturally ends (~30s)
+        source.onended = () => {
+          if (activeSourceNodeRef.current === source) {
+            activeSourceNodeRef.current = null;
+          }
+          if (playbackGainRef.current === gainNode) {
+            playbackGainRef.current = null;
+          }
+        };
+
         return true;
       } catch (e) {
         console.warn('[WebAudio] BufferSource start error:', e);
@@ -576,6 +619,9 @@ export function GameProvider({ children }) {
     clearAutoNextTimer();
     getAudioContext(); // Resume Web Audio API context on user gesture
 
+    // [FIX BUG3] Clear AudioBuffer cache from previous match to prevent memory leak
+    audioBufferMapRef.current.clear();
+
     // Check lives for Free users
     if (!user.isPro && (user.lives === undefined || user.lives <= 0)) {
       setIsLivesModalOpen(true);
@@ -648,7 +694,10 @@ export function GameProvider({ children }) {
     setRoundScore(0);
     setStreak(0);
     setMaxStreak(0);
-    setStats({ correct: 0, wrong: 0, totalTimeMs: 0 });
+    setStats({ correct: 0, wrong: 0, totalTimeMs: 0, correctTimeMs: 0 });
+
+    // [FIX BUG3] Clear AudioBuffer cache on restart to prevent memory leak
+    audioBufferMapRef.current.clear();
 
     setupRound(0, pool, allCatalogPool);
     return true;
