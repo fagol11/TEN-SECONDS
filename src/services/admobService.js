@@ -8,15 +8,15 @@ export async function initializeAdMob() {
   if (isAdMobInitialized) return;
   try {
     await AdMob.initialize({
-      initializeForTesting: true,
+      initializeForTesting: false,
     });
     isAdMobInitialized = true;
-    console.log('[AdMob] Native AdMob SDK Initialized');
+    console.log('[AdMob] Native AdMob SDK Initialized (Production Mode)');
     
     // Preload rewarded video ad in background immediately upon app startup
     preloadRewardedAd();
   } catch (e) {
-    console.warn('[AdMob] Initialization notice (browser or mock mode):', e);
+    console.warn('[AdMob] Initialization notice:', e);
   }
 }
 
@@ -25,23 +25,23 @@ export async function initializeAdMob() {
  */
 export async function preloadRewardedAd() {
   try {
-    // Prepare Google test unit first for 100% fill rate during test/beta builds
+    // Try real production AdMob unit ID first
     await AdMob.prepareRewardVideoAd({
-      adId: ADMOB_CONFIG.testUnits.rewarded,
-      isTesting: true,
+      adId: ADMOB_CONFIG.units.rewardedLife,
+      isTesting: false,
     });
     isAdPreloaded = true;
-    console.log('[AdMob] Rewarded video preloaded successfully');
+    console.log('[AdMob] Real Production Rewarded video preloaded successfully');
   } catch (e) {
-    console.warn('[AdMob] Preload test ad unit notice:', e);
+    console.warn('[AdMob] Real ad unit preload notice, trying fallback test unit:', e);
     try {
       await AdMob.prepareRewardVideoAd({
-        adId: ADMOB_CONFIG.units.rewardedLife,
-        isTesting: false,
+        adId: ADMOB_CONFIG.testUnits.rewarded,
+        isTesting: true,
       });
       isAdPreloaded = true;
-    } catch (realErr) {
-      console.warn('[AdMob] Real ad unit preload notice:', realErr);
+    } catch (testErr) {
+      console.warn('[AdMob] Test ad unit preload notice:', testErr);
     }
   }
 }
