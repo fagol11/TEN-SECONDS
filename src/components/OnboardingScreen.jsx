@@ -29,12 +29,13 @@ export default function OnboardingScreen() {
     e?.preventDefault();
     const rawInput = googleEmailInput.trim() || 'fabrizio.gosce@gmail.com';
     
-    // Extract name from email if needed (e.g. fabrizio.gosce@gmail.com -> Fabrizio)
-    let extractedName = 'Fabrizio';
-    if (rawInput.includes('@')) {
+    let extractedName = 'Fabrizio Goscè';
+    if (rawInput.toLowerCase().includes('fabrizio')) {
+      extractedName = 'Fabrizio Goscè';
+    } else if (rawInput.includes('@')) {
       const handle = rawInput.split('@')[0].split('.')[0];
       extractedName = handle.charAt(0).toUpperCase() + handle.slice(1);
-    } else {
+    } else if (rawInput.length > 0) {
       extractedName = rawInput;
     }
 
@@ -43,7 +44,7 @@ export default function OnboardingScreen() {
       name: extractedName,
       email: rawInput.includes('@') ? rawInput : `${rawInput}@gmail.com`,
       hasCompletedCalibration: true,
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+      avatar: 'https://lh3.googleusercontent.com/a/ACg8ocKUwYRhaCf54m6mf6VvKEy9oRlc24j_iEYTqsVmocw3nbnKq5jH=s96-c'
     }));
     setIsGoogleModalOpen(false);
     setActiveScreen('CATALOG');

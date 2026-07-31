@@ -160,27 +160,32 @@ export function GameProvider({ children }) {
 
     // 2. Direct OAuth URL Hash listener fallback (#access_token=...)
     if (window.location.hash.includes('access_token=')) {
-      const params = new URLSearchParams(window.location.hash.replace('#', '?'));
+      const hashStr = window.location.hash.startsWith('#') ? window.location.hash.substring(1) : window.location.hash;
+      const params = new URLSearchParams(hashStr);
       const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+
       if (accessToken) {
-        fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        })
-          .then(res => res.json())
-          .then(info => {
-            if (info?.name || info?.email) {
-              setUser(prev => ({
-                ...prev,
-                name: info.name || info.given_name || 'Utente Google',
-                email: info.email || '',
-                avatar: info.picture || prev.avatar,
-                hasCompletedCalibration: true
-              }));
-              setActiveScreen('CATALOG');
-              window.history.replaceState(null, '', window.location.pathname);
-            }
-          })
-          .catch(err => console.warn('Userinfo fetch warning:', err));
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || ''
+        }).then(({ data, error }) => {
+          if (data?.session?.user) {
+            const meta = data.session.user.user_metadata || {};
+            const fullName = meta.full_name || meta.name || data.session.user.email?.split('@')[0] || 'Fabrizio Goscè';
+            const avatarUrl = meta.avatar_url || meta.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+
+            setUser(prev => ({
+              ...prev,
+              name: fullName,
+              email: data.session.user.email,
+              avatar: avatarUrl,
+              hasCompletedCalibration: true
+            }));
+            setActiveScreen('CATALOG');
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }).catch(err => console.warn('Supabase setSession notice:', err));
       }
     }
 
