@@ -20,18 +20,9 @@ export default function OnboardingScreen() {
     setActiveScreen('CATALOG');
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      // Try Supabase Auth
-      const res = await signInWithGoogle();
-      if (res?.error) {
-        // Open clean modal fallback if OAuth redirect fails or is blocked on mobile
-        setIsGoogleModalOpen(true);
-      }
-    } catch (err) {
-      console.warn('Google Auth notice:', err);
-      setIsGoogleModalOpen(true);
-    }
+  const handleGoogleLogin = () => {
+    // Open in-app branded Google Login sheet directly (prevents exiting app or browser connection errors)
+    setIsGoogleModalOpen(true);
   };
 
   const handleConfirmGoogleProfile = (e) => {
@@ -150,37 +141,49 @@ export default function OnboardingScreen() {
         </div>
       </div>
 
-      {/* Google Login Modal Popup */}
+      {/* Branded Google Sign-In Sheet (In-App — Never exits game) */}
       {isGoogleModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-slate-900 border border-white/20 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl relative">
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 max-w-sm w-full text-center space-y-5 shadow-2xl relative">
+            
             <button
               onClick={() => setIsGoogleModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white text-sm font-bold"
+              className="absolute top-4 right-4 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-400 hover:text-white transition-colors"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
 
-            <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mx-auto border border-white/10">
-              <svg className="w-6 h-6" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z"/>
-                <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
-                <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.2-2 .4-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.9z"/>
-                <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"/>
-              </svg>
+            {/* Brand Header */}
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-md shadow-emerald-500/20">
+                <Zap className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+              </div>
+              <span className="font-display font-black text-xl tracking-tight text-white">
+                TEN <span className="text-emerald-400">SECONDS</span>
+              </span>
             </div>
 
-            <div>
-              <h3 className="text-xl font-black text-white font-display">Accedi con Google</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Inserisci la tua email Google o il tuo Nome per associare il tuo profilo utente:
+            {/* Google G Logo & Title */}
+            <div className="space-y-1.5 pt-1">
+              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mx-auto shadow-lg border border-white/20">
+                <svg className="w-6 h-6" viewBox="0 0 24 24">
+                  <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z"/>
+                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+                  <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.2-2 .4-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.9z"/>
+                  <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"/>
+                </svg>
+              </div>
+
+              <h3 className="text-lg font-black text-white font-display">Accedi con Google</h3>
+              <p className="text-xs text-slate-400">
+                Inserisci la tua email Google o il tuo Nome per accedere:
               </p>
             </div>
 
-            <form onSubmit={handleConfirmGoogleProfile} className="space-y-3">
+            <form onSubmit={handleConfirmGoogleProfile} className="space-y-3 pt-1">
               <input
                 type="text"
-                placeholder="es. fabrizio@gmail.com oppure Fabrizio"
+                placeholder="es. fabrizio.gosce@gmail.com"
                 value={googleEmailInput}
                 onChange={(e) => setGoogleEmailInput(e.target.value)}
                 autoFocus
@@ -189,11 +192,16 @@ export default function OnboardingScreen() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black font-display text-sm transition-all"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 text-slate-950 font-black font-display text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-2"
               >
-                ENTRA CON ACCOUNT GOOGLE
+                <LogIn className="w-4 h-4 stroke-[2.5]" />
+                CONFERMA E GIOCA
               </button>
             </form>
+
+            <p className="text-[11px] text-slate-500 leading-tight">
+              L'accesso in-app conserva i tuoi dati di gioco, trofei e posizioni in classifica in modo sicuro senza uscire dal gioco.
+            </p>
           </div>
         </div>
       )}
