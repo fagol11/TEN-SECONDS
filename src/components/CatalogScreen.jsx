@@ -15,7 +15,9 @@ export default function CatalogScreen() {
 
   const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false);
 
-  const filteredPlaylists = PLAYLISTS.filter(p => {
+  const allAvailablePlaylists = [...(user.importedPlaylists || []), ...PLAYLISTS];
+
+  const filteredPlaylists = allAvailablePlaylists.filter(p => {
     if (selectedCategory === 'all') return true;
     return p.category === selectedCategory;
   });
@@ -51,7 +53,12 @@ export default function CatalogScreen() {
     setIsImporting(false);
     setIsSpotifyModalOpen(false);
 
-    if (imported && imported.tracks.length > 0) {
+    if (imported && imported.tracks && imported.tracks.length > 0) {
+      setUser(prev => ({
+        ...prev,
+        importedPlaylists: [imported, ...(prev.importedPlaylists || []).filter(p => p.id !== imported.id)]
+      }));
+      setSpotifyUrlInput('');
       startGame(imported, 'STANDARD', imported.tracks);
     } else {
       alert('Impossibile caricare la playlist Spotify. Verifica il link fornito.');

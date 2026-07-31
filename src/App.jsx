@@ -17,7 +17,7 @@ function MainContent() {
   const { activeScreen, isLivesModalOpen, setIsLivesModalOpen, isConfettiActive, comboEvent } = useGame();
 
   return (
-    <main className={activeScreen === 'GAME' ? 'pb-2 sm:pb-4' : 'pb-12'}>
+    <main className={activeScreen === 'GAME' ? 'flex-1 flex flex-col justify-between overflow-hidden pb-1' : 'pb-12'}>
       {activeScreen === 'ONBOARDING' && <OnboardingScreen />}
       {activeScreen === 'CALIBRATION' && <CalibrationScreen />}
       {activeScreen === 'GAME' && <GameScreen />}
@@ -33,13 +33,22 @@ function MainContent() {
   );
 }
 
+function AppInner() {
+  const { activeScreen } = useGame();
+  return (
+    <div className={`bg-[#09090d] text-slate-100 flex flex-col antialiased relative ${
+      activeScreen === 'GAME' ? 'h-dvh max-h-dvh overflow-hidden' : 'min-h-screen'
+    }`}>
+      <Navbar />
+      <MainContent />
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <GameProvider>
-      <div className="min-h-screen bg-[#09090d] text-slate-100 flex flex-col antialiased relative">
-        <Navbar />
-        <MainContent />
-      </div>
+      <AppInner />
     </GameProvider>
   );
 }

@@ -16,6 +16,15 @@ const PRESET_AVATARS = [
 export default function PlayerProfileModal({ player, isOpen, onClose }) {
   const { user, setUser, logoutUser } = useGame();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState(user.name || '');
+
+  const handleSaveName = () => {
+    if (nameInput.trim()) {
+      setUser(prev => ({ ...prev, name: nameInput.trim() }));
+    }
+    setIsEditingName(false);
+  };
 
   if (!isOpen || !player) return null;
 
@@ -84,10 +93,40 @@ export default function PlayerProfileModal({ player, isOpen, onClose }) {
             )}
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-black font-display text-white leading-tight">{player.name}</h3>
-              <span className="text-base" title={player.nationality || 'Italia'}>{player.flag || '🇮🇹'}</span>
+              {isCurrentUser && isEditingName ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                    className="bg-white/10 border border-emerald-400/50 rounded-lg px-2 py-0.5 text-sm font-bold text-white focus:outline-none w-32"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSaveName}
+                    className="p-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg text-xs font-bold"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <h3 className="text-xl font-black font-display text-white leading-tight truncate">{player.name}</h3>
+                  {isCurrentUser && (
+                    <button
+                      onClick={() => { setNameInput(user.name); setIsEditingName(true); }}
+                      className="text-slate-400 hover:text-emerald-400 text-xs font-bold shrink-0"
+                      title="Modifica Nome Profilo"
+                    >
+                      ✏️
+                    </button>
+                  )}
+                  <span className="text-base shrink-0" title={player.nationality || 'Italia'}>{player.flag || '🇮🇹'}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-2 text-xs text-slate-300">

@@ -12,7 +12,7 @@ const RANDOM_OPPONENTS = [
 ];
 
 export default function ChallengeScreen() {
-  const { startGame, user, recordWin, openPlayerProfile } = useGame();
+  const { startGame, startMatchSession, user, recordWin, openPlayerProfile } = useGame();
   const [activeTab, setActiveTab] = useState('1v1'); // '1v1' | 'random' | 'tournament'
   const [songCount, setSongCount] = useState(10); // 10 | 15 | 20
   
@@ -52,7 +52,12 @@ export default function ChallengeScreen() {
   const handlePlay1v1 = () => {
     if (completedSet.has(challengeCode)) return;
     recordWin('CHALLENGE');
-    startGame(selectedPlaylist1v1, 'CHALLENGE', null, challengeCode, songCount);
+    // Start real-time session — broadcasts scores live to opponent
+    if (startMatchSession) {
+      startMatchSession(challengeCode, selectedPlaylist1v1, 'CHALLENGE', null, challengeCode, songCount);
+    } else {
+      startGame(selectedPlaylist1v1, 'CHALLENGE', null, challengeCode, songCount);
+    }
   };
 
   const handleSearchRandomMatch = () => {
@@ -149,6 +154,42 @@ export default function ChallengeScreen() {
         >
           <Crown className="w-3.5 h-3.5" /> Torneo
         </button>
+      </div>
+
+      {/* Join Challenge / Tournament by Code Box */}
+      <div className="glass-card p-4 rounded-2xl border border-emerald-500/30 bg-emerald-950/10 space-y-3">
+        <div className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+          <Zap className="w-4 h-4 text-emerald-400 fill-current" /> Hai ricevuto un Codice Sfida o Torneo?
+        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const code = e.target.challengeInput?.value?.trim()?.toUpperCase();
+            if (code) {
+              const playlist = PLAYLISTS[Math.floor(Math.random() * PLAYLISTS.length)];
+              // Join real-time session using the same code as the host
+              if (startMatchSession) {
+                startMatchSession(code, playlist, 'CHALLENGE', null, code, songCount);
+              } else {
+                startGame(playlist, 'CHALLENGE', null, code, songCount);
+              }
+            }
+          }}
+          className="flex gap-2"
+        >
+          <input
+            name="challengeInput"
+            type="text"
+            placeholder="Incolla Codice (es. TEN-ROCK-9920)"
+            className="flex-1 bg-black/50 border border-emerald-500/30 px-3 py-2.5 rounded-xl text-xs text-white placeholder-slate-500 font-mono font-bold focus:outline-none focus:border-emerald-400"
+          />
+          <button
+            type="submit"
+            className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs font-display flex items-center gap-1 shrink-0 shadow-lg shadow-emerald-500/20"
+          >
+            <Play className="w-3.5 h-3.5 fill-current" /> ENTRA
+          </button>
+        </form>
       </div>
 
       {/* Song Count Mode Selector (10, 15, or 20 Songs) */}

@@ -2,6 +2,7 @@ import { AdMob } from '@capacitor-community/admob';
 import { ADMOB_CONFIG } from './admobConfig';
 
 let isAdMobInitialized = false;
+let isAdPreloaded = false;
 
 export async function initializeAdMob() {
   if (isAdMobInitialized) return;
@@ -10,15 +11,43 @@ export async function initializeAdMob() {
       initializeForTesting: true,
     });
     isAdMobInitialized = true;
-    console.log('[AdMob] Native AdMob SDK Initialized Successfully');
+    console.log('[AdMob] Native AdMob SDK Initialized');
+    
+    // Preload rewarded video ad in background immediately upon app startup
+    preloadRewardedAd();
   } catch (e) {
-    console.warn('[AdMob] Initialization warning (running in web browser or mock mode):', e);
+    console.warn('[AdMob] Initialization notice (browser or mock mode):', e);
   }
 }
 
 /**
- * Preloads & Shows Rewarded Video Ad for +1 Life Reward.
- * Uses official Ad Unit ID first, falls back to Google Test Ad Unit if ad fill is not ready yet.
+ * Preloads Rewarded Video Ad in the background for zero-delay instant playback.
+ */
+export async function preloadRewardedAd() {
+  try {
+    // Prepare Google test unit first for 100% fill rate during test/beta builds
+    await AdMob.prepareRewardVideoAd({
+      adId: ADMOB_CONFIG.testUnits.rewarded,
+      isTesting: true,
+    });
+    isAdPreloaded = true;
+    console.log('[AdMob] Rewarded video preloaded successfully');
+  } catch (e) {
+    console.warn('[AdMob] Preload test ad unit notice:', e);
+    try {
+      await AdMob.prepareRewardVideoAd({
+        adId: ADMOB_CONFIG.units.rewardedLife,
+        isTesting: false,
+      });
+      isAdPreloaded = true;
+    } catch (realErr) {
+      console.warn('[AdMob] Real ad unit preload notice:', realErr);
+    }
+  }
+}
+
+/**
+ * Shows Rewarded Video Ad INSTANTLY for +1 Life Reward.
  * @returns {Promise<boolean>} True if user watched the ad and earned the reward
  */
 export async function showRewardedAdForLife() {
@@ -33,17 +62,11 @@ export async function showRewardedAdForLife() {
       console.log('[AdMob] Rewarded Video Reward Claimed!');
     });
 
-    // 1. Try Official User Ad Unit ID
+    // Show preloaded ad immediately
     try {
-      await AdMob.prepareRewardVideoAd({
-        adId: ADMOB_CONFIG.units.rewardedLife,
-        isTesting: false,
-      });
       await AdMob.showRewardVideoAd();
-    } catch (officialErr) {
-      console.warn('[AdMob] Official Ad Unit no-fill/loading notice. Trying Google Test Ad Unit:', officialErr);
-      
-      // 2. Fallback to Google Official Test Rewarded Ad Unit ID
+    } catch (showErr) {
+      console.warn('[AdMob] Immediate show notice, preparing and showing test ad:', showErr);
       await AdMob.prepareRewardVideoAd({
         adId: ADMOB_CONFIG.testUnits.rewarded,
         isTesting: true,
@@ -52,14 +75,18 @@ export async function showRewardedAdForLife() {
       rewardEarned = true;
     }
 
-    // Remove listener after display
+    // Preload next ad in background
     setTimeout(() => {
       rewardListener.remove();
+      preloadRewardedAd();
     }, 1000);
 
     return rewardEarned;
   } catch (e) {
-    console.warn('[AdMob] Native ad failed or unsupported on this device. Granting fallback reward:', e);
-    return true; // Ensure user is never stuck without lives
+    console.warn('[AdMob] Native ad unsupported on this device/environment. Granting fallback reward:', e);
+    return true; // Ensure user is never blocked
   }
 }
+
+// Auto-initialize AdMob on module import
+initializeAdMob();

@@ -22,19 +22,23 @@ export default function LivesModal({ isOpen, onClose }) {
 
   const requiredDuration = getAdDuration();
 
-  const handleWatchAdClick = () => {
+  const handleWatchAdClick = async () => {
     setIsWatchingAd(true);
     setAdCountdown(requiredDuration);
 
+    let adCompleted = false;
     const interval = setInterval(() => {
       setAdCountdown(prev => {
         if (prev <= 1) {
           clearInterval(interval);
-          setIsWatchingAd(false);
-          setAdWatchCount(c => c + 1);
-          watchRewardAd();
-          onClose();
-          return 5;
+          if (!adCompleted) {
+            adCompleted = true;
+            watchRewardAd();
+            setIsWatchingAd(false);
+            setAdWatchCount(c => c + 1);
+            onClose();
+          }
+          return 0;
         }
         return prev - 1;
       });
@@ -60,23 +64,53 @@ export default function LivesModal({ isOpen, onClose }) {
 
         {/* Ad Player Simulator Screen */}
         {isWatchingAd ? (
-          <div className="py-8 space-y-4 animate-pulse">
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto border border-amber-500/40">
-              <Tv className="w-8 h-8 animate-bounce" />
+          <div className="py-2 space-y-4 text-center animate-fadeIn">
+            {/* Header Badge */}
+            <div className="flex items-center justify-between text-[11px] text-slate-400 border-b border-white/10 pb-2">
+              <span className="font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                <Tv className="w-3.5 h-3.5" /> SPONSOR PROMOZIONALE
+              </span>
+              <span className="bg-amber-500/20 text-amber-300 font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
+                0:0{adCountdown}
+              </span>
             </div>
-            <h3 className="font-display font-black text-xl text-white">Riproduzione Spot Pubblicitario</h3>
-            <p className="text-xs text-slate-400">Guarda ancora <span className="font-mono font-bold text-amber-400 text-sm">{adCountdown}s</span> per sbloccare +1 Vita ❤️</p>
-            <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-              <div
-                className="bg-amber-400 h-full transition-all duration-1000 ease-linear"
-                style={{ width: `${((requiredDuration - adCountdown) / requiredDuration) * 100}%` }}
-              />
+
+            {/* Video Player Display Window */}
+            <div className="relative h-44 rounded-2xl bg-gradient-to-br from-purple-950 via-slate-900 to-indigo-950 border border-purple-500/30 flex flex-col items-center justify-center overflow-hidden shadow-2xl group">
+              {/* Background Animated Sound Waves */}
+              <div className="absolute inset-0 opacity-20 flex items-center justify-center gap-1 pointer-events-none">
+                <div className="w-2 bg-emerald-400 h-16 animate-pulse" />
+                <div className="w-2 bg-cyan-400 h-28 animate-pulse delay-75" />
+                <div className="w-2 bg-purple-400 h-20 animate-pulse delay-150" />
+                <div className="w-2 bg-amber-400 h-32 animate-pulse delay-100" />
+                <div className="w-2 bg-rose-400 h-14 animate-pulse delay-200" />
+              </div>
+
+              {/* Pulsing Brand Graphic */}
+              <div className="relative z-10 space-y-2 text-center p-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/30 animate-bounce">
+                  <Tv className="w-8 h-8 fill-current" />
+                </div>
+                <h4 className="font-display font-black text-lg text-white tracking-wide">
+                  🎧 Beats Sound Studio Pro
+                </h4>
+                <p className="text-xs text-amber-300/90 font-semibold">
+                  Musica ad Alta Fedeltà • Zero Distorsione
+                </p>
+              </div>
+
+              {/* Video Playhead Bar */}
+              <div className="absolute bottom-0 left-0 right-0 h-2 bg-white/10">
+                <div
+                  className="bg-gradient-to-r from-amber-400 via-orange-400 to-emerald-400 h-full transition-all duration-1000 ease-linear shadow-lg"
+                  style={{ width: `${((requiredDuration - adCountdown) / requiredDuration) * 100}%` }}
+                />
+              </div>
             </div>
-            {requiredDuration > 5 && (
-              <p className="text-[11px] text-amber-300 font-semibold bg-amber-500/10 py-1 px-3 rounded-full inline-block">
-                ⚡ Vuoi saltare gli spot più lunghi? Passa a Ten Seconds PRO!
-              </p>
-            )}
+
+            <p className="text-xs text-slate-400 font-semibold">
+              Riproduzione spot in corso... Attendi <span className="font-mono font-black text-amber-400 text-sm">{adCountdown}s</span> per ricevere la tua Vita ❤️
+            </p>
           </div>
         ) : (
           <>

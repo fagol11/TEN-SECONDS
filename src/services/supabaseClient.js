@@ -16,29 +16,44 @@ export async function signInWithGoogle() {
     // Check if session already exists
     const { data: sessionData } = await supabase.auth.getSession();
     if (sessionData?.session?.user) {
-      return sessionData.session.user;
+      return { user: sessionData.session.user };
     }
 
-    // Try OAuth sign in
+    // Try OAuth sign in with inspect mode
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin,
+        skipBrowserRedirect: true // Inspect URL first to avoid raw JSON error page
       }
     });
 
     if (error) {
       console.warn('Supabase Google Auth notice:', error.message);
-      return null;
+      return { error: error.message };
     }
 
     if (data?.url) {
+      // Pre-check if provider endpoint is enabled in Supabase Dashboard
+      try {
+        const checkRes = await fetch(data.url);
+        const bodyText = await checkRes.text();
+        if (bodyText.includes('provider is not enabled') || checkRes.status === 400) {
+          console.warn('[Supabase Auth] Google provider is not enabled in dashboard');
+          return { error: 'provider is not enabled' };
+        }
+      } catch (fetchErr) {
+        console.warn('[Supabase Auth] Fetch check warning:', fetchErr);
+      }
+
+      // If valid, redirect browser to Google OAuth
       window.location.href = data.url;
+      return { data };
     }
-    return data;
+    return { error: 'No OAuth URL returned' };
   } catch (err) {
     console.warn('Supabase Google Auth warning:', err.message);
-    return null;
+    return { error: err.message };
   }
 }
 

@@ -8,6 +8,11 @@
   "plugins": {
     "CapacitorHttp": {
       "enabled": true
+    },
+    "StatusBar": {
+      "overlaysWebView": true,
+      "style": "DARK",
+      "visible": false
     }
   }
 }

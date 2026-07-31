@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { PLAYLISTS, generateChoicesForTrack, getCalibrationTracks, getRandomizedTrackPool, ALL_MASTER_TRACKS } from '../services/curatedCatalog';
 import { saveOfflineScore, getOfflineAudioUrl } from '../services/offlineStorage';
-import { resolveAudioPreview } from '../services/audioResolver';
+import { resolveAudioPreview, preloadAudio, getFastAudioUrl } from '../services/audioResolver';
 import { supabase, signInWithGoogle, signOutSupabase } from '../services/supabaseClient';
+import { createMatchSession } from '../services/matchService';
 import { showRewardedAdForLife } from '../services/admobService';
 import PlayerProfileModal from '../components/PlayerProfileModal';
 import confetti from 'canvas-confetti';
@@ -126,12 +127,84 @@ export function GameProvider({ children }) {
     localStorage.setItem('ten_seconds_user', JSON.stringify(user));
   }, [user]);
 
+  // --- AUTH SESSION LISTENER (Supabase & Google OAuth) ---
+  useEffect(() => {
+    // 1. Supabase Auth listener
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        const meta = session.user.user_metadata || {};
+        const fullName = meta.full_name || meta.name || session.user.email?.split('@')[0] || 'Utente Google';
+        const avatarUrl = meta.avatar_url || meta.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+        
+        setUser(prev => ({
+          ...prev,
+          name: fullName,
+          email: session.user.email,
+          avatar: avatarUrl,
+          hasCompletedCalibration: true
+        }));
+        setActiveScreen('CATALOG');
+      }
+    });
+
+    // 2. Direct OAuth URL Hash listener fallback (#access_token=...)
+    if (window.location.hash.includes('access_token=')) {
+      const params = new URLSearchParams(window.location.hash.replace('#', '?'));
+      const accessToken = params.get('access_token');
+      if (accessToken) {
+        fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        })
+          .then(res => res.json())
+          .then(info => {
+            if (info?.name || info?.email) {
+              setUser(prev => ({
+                ...prev,
+                name: info.name || info.given_name || 'Utente Google',
+                email: info.email || '',
+                avatar: info.picture || prev.avatar,
+                hasCompletedCalibration: true
+              }));
+              setActiveScreen('CATALOG');
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+          })
+          .catch(err => console.warn('Userinfo fetch warning:', err));
+      }
+    }
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
   // --- GAMEPLAY STATE ---
   const [currentPlaylist, setCurrentPlaylist] = useState(null);
   const [gameMode, setGameMode] = useState('STANDARD'); // 'STANDARD' | 'CALIBRATION' | 'CHALLENGE' | 'DAILY'
   const [currentChallengeId, setCurrentChallengeId] = useState(null);
   const [trackList, setTrackList] = useState([]);
   const [trackIndex, setTrackIndex] = useState(0);
+
+  // --- REAL-TIME MATCH SESSION (1v1 Live Challenges) ---
+  const [matchSession, setMatchSession] = useState(null);
+  const matchSessionRef = useRef(null);
+
+  const startMatchSession = (matchCode, playlist, mode, customTracks, challengeId, targetCount) => {
+    // Tear down any existing session
+    if (matchSessionRef.current) {
+      matchSessionRef.current.unsubscribe();
+    }
+    const playerInfo = {
+      name: user.name,
+      avatar: user.avatar,
+      flag: user.flag || '🇮🇹',
+    };
+    const session = createMatchSession(matchCode, playerInfo);
+    matchSessionRef.current = session;
+    setMatchSession(session);
+    // Now start the actual game
+    startGame(playlist, mode, customTracks, challengeId, targetCount);
+  };
   const [currentChoices, setCurrentChoices] = useState([]);
   
   const [roundScore, setRoundScore] = useState(0);
@@ -269,29 +342,35 @@ export function GameProvider({ children }) {
   const startRoundTimer = () => {
     stopTimer();
     setRemainingTime(10.0);
-    startTimeRef.current = Date.now();
+    const startMs = Date.now();
+    startTimeRef.current = startMs;
+    const DURATION_MS = 10000;
 
     timerIntervalRef.current = setInterval(() => {
-      setRemainingTime(prev => {
-        if (prev <= 0.1) {
-          stopTimer();
-          handleTimeout();
-          return 0.0;
-        }
-        return Math.max(0, +(prev - 0.1).toFixed(1));
-      });
-    }, 100);
+      const elapsedMs = Date.now() - startMs;
+      const remainingMs = Math.max(0, DURATION_MS - elapsedMs);
+      const remainingSec = +(remainingMs / 1000).toFixed(1);
+      
+      setRemainingTime(remainingSec);
+
+      if (remainingMs <= 0) {
+        stopTimer();
+        handleTimeout();
+      }
+    }, 40);
   };
 
   // --- REWARD AD & PRO ACTIONS ---
   const watchRewardAd = async () => {
-    const success = await showRewardedAdForLife();
-    if (success) {
-      setUser(prev => ({
-        ...prev,
-        lives: Math.min(3, (prev.lives || 0) + 1)
-      }));
+    try {
+      await showRewardedAdForLife();
+    } catch (e) {
+      console.warn('[AdMob] Ad watch notice:', e);
     }
+    setUser(prev => ({
+      ...prev,
+      lives: (prev.lives || 0) + 1
+    }));
   };
 
   const toggleProStatus = () => {
@@ -457,17 +536,33 @@ export function GameProvider({ children }) {
       }
 
       if (src) {
+        const fastSrc = getFastAudioUrl(src);
         audioRef.current.pause();
-        audioRef.current.src = src;
+        audioRef.current.src = fastSrc;
         audioRef.current.currentTime = 0;
         audioRef.current.volume = 1.0;
+
+        let hasStartedTimer = false;
+        const triggerTimerOnce = () => {
+          if (!hasStartedTimer) {
+            hasStartedTimer = true;
+            startRoundTimer();
+          }
+        };
+
+        // Start 10s countdown exact moment audio emits sound
+        audioRef.current.onplaying = triggerTimerOnce;
+
+        // Safety fallback timer if onplaying is delayed
+        setTimeout(triggerTimerOnce, 600);
         
         // Auto fallback if playback fails or errors out
         audioRef.current.onerror = async () => {
           console.warn('[Audio] Primary URL error, fetching dynamic fallback for:', track.title);
+          triggerTimerOnce();
           const fallback = await resolveAudioPreview(track.artist, track.title);
           if (fallback && fallback.previewUrl && fallback.previewUrl !== src) {
-            audioRef.current.src = fallback.previewUrl;
+            audioRef.current.src = getFastAudioUrl(fallback.previewUrl);
             audioRef.current.play().catch(e => console.warn('[Audio] Fallback play error:', e));
           }
         };
@@ -476,19 +571,42 @@ export function GameProvider({ children }) {
         if (playPromise !== undefined) {
           playPromise.catch(async (err) => {
             console.warn('[Audio] Autoplay blocked or error, trying iTunes fallback:', err);
+            triggerTimerOnce();
             const fallback = await resolveAudioPreview(track.artist, track.title);
             if (fallback && fallback.previewUrl && fallback.previewUrl !== src) {
-              audioRef.current.src = fallback.previewUrl;
+              audioRef.current.src = getFastAudioUrl(fallback.previewUrl);
               audioRef.current.play().catch(e => console.warn('[Audio] Retry play failed:', e));
             }
           });
         }
+      } else {
+        startRoundTimer();
       }
     } catch (e) {
       console.warn('Audio play failed:', e);
+      startRoundTimer();
     }
 
-    startRoundTimer();
+    // Background pre-buffering for next 2 tracks for zero-delay instant playback
+    setTimeout(() => {
+      [index + 1, index + 2].forEach(async (nextIdx) => {
+        if (nextIdx < pool.length) {
+          const nextTrack = pool[nextIdx];
+          if (nextTrack) {
+            if (!nextTrack.previewUrl) {
+              const res = await resolveAudioPreview(nextTrack.artist, nextTrack.title);
+              if (res?.previewUrl) {
+                nextTrack.previewUrl = res.previewUrl;
+                if (!nextTrack.artworkUrl && res.artworkUrl) nextTrack.artworkUrl = res.artworkUrl;
+              }
+            }
+            if (nextTrack.previewUrl) {
+              preloadAudio(nextTrack.previewUrl);
+            }
+          }
+        }
+      });
+    }, 20);
   };
 
   // Explicit manual audio trigger function for user tap
@@ -561,7 +679,18 @@ export function GameProvider({ children }) {
         points = Math.round(1000 * speedMultiplier * streakMultiplier);
       }
 
-      setRoundScore(prev => prev + points);
+      setRoundScore(prev => {
+        const newScore = prev + points;
+        // Broadcast live score update to opponent
+        if (matchSessionRef.current) {
+          matchSessionRef.current.sendScoreUpdate({
+            score: newScore,
+            trackIndex,
+            streak: newStreak,
+          });
+        }
+        return newScore;
+      });
       setStreak(newStreak);
       if (newStreak > maxStreak) setMaxStreak(newStreak);
       setStats(prev => ({ ...prev, correct: prev.correct + 1, totalTimeMs: prev.totalTimeMs + (timeSpent * 1000) }));
@@ -595,7 +724,7 @@ export function GameProvider({ children }) {
     }
 
     setRoundStatus('ANSWERED');
-    scheduleNextRound(750);
+    scheduleNextRound(450);
   };
 
   // --- SKIP ROUND ---
@@ -605,7 +734,7 @@ export function GameProvider({ children }) {
     setStreak(0);
     setAnswerFeedback('SKIPPED');
     setRoundStatus('ANSWERED');
-    scheduleNextRound(250);
+    scheduleNextRound(150);
   };
 
   // --- TIMEOUT HANDLER ---
@@ -616,7 +745,7 @@ export function GameProvider({ children }) {
     setAnswerFeedback('TIMEOUT');
     playSoundEffect('wrong');
     setRoundStatus('ANSWERED');
-    scheduleNextRound(750);
+    scheduleNextRound(450);
   };
 
   // --- NEXT ROUND ---
@@ -720,6 +849,18 @@ export function GameProvider({ children }) {
     setCurrentChallengeId(null);
     setUser(updatedUser);
 
+    // Broadcast game over to opponent
+    if (matchSessionRef.current) {
+      matchSessionRef.current.sendGameOver({
+        score: finalGameScore,
+        correctAnswers: stats.correct,
+        totalTracks: trackList.length,
+      });
+      matchSessionRef.current.unsubscribe();
+      matchSessionRef.current = null;
+      setMatchSession(null);
+    }
+
     if (isOfflineMode) {
       saveOfflineScore({
         playlistId: currentPlaylist?.id || 'unknown',
@@ -800,7 +941,11 @@ export function GameProvider({ children }) {
         openPlayerProfile,
         loginWithGoogle: signInWithGoogle,
         logoutSupabase: signOutSupabase,
-        logoutUser
+        logoutUser,
+
+        // Real-time multiplayer
+        matchSession,
+        startMatchSession,
       }}
     >
       {children}

@@ -151,8 +151,8 @@ export default function Navbar() {
 
       </div>
 
-      {/* Mobile Sub-row 1: User Stats Pills (Aligned 4-column Grid) */}
-      {activeScreen !== 'ONBOARDING' && (
+      {/* Mobile Sub-row 1: User Stats Pills (Hidden during GAME screen to maximize vertical space) */}
+      {activeScreen !== 'ONBOARDING' && activeScreen !== 'GAME' && (
         <div className="grid grid-cols-4 gap-1.5 sm:gap-2 md:hidden pt-2 border-t border-white/5 w-full items-center">
           {/* Vite ❤️ */}
           <button
