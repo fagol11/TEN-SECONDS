@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { Zap, Play, CheckCircle2, Music, ShieldCheck, Sparkles, Radio, LogIn } from 'lucide-react';
+import { Zap, Play, CheckCircle2, Music, ShieldCheck, Sparkles, Radio, LogIn, X } from 'lucide-react';
 import { signInWithGoogle } from '../services/supabaseClient';
 
 const GOOGLE_CLIENT_ID = '806365470000-uig4d8po2rt82chnhok0ik6s324mod8p.apps.googleusercontent.com';
