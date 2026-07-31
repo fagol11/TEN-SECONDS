@@ -19,11 +19,13 @@ export async function signInWithGoogle() {
       return { user: sessionData.session.user };
     }
 
+    const currentRedirect = window.location.href.split('#')[0];
+
     // Try OAuth sign in with inspect mode
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: currentRedirect,
         skipBrowserRedirect: true // Inspect URL first to avoid raw JSON error page
       }
     });

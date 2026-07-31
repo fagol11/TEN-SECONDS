@@ -22,17 +22,14 @@ export default function OnboardingScreen() {
 
   const handleGoogleLogin = async () => {
     try {
-      // 1. Try Supabase Auth first
+      // Try Supabase Auth
       const res = await signInWithGoogle();
-      if (res?.error && res.error !== 'provider is not enabled') {
-        console.warn('Supabase Auth error, using direct Google OAuth fallback:', res.error);
-        const redirectUri = window.location.origin;
-        const scope = 'email profile';
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(GOOGLE_CLIENT_ID)}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}&prompt=select_account`;
-        window.location.href = googleAuthUrl;
+      if (res?.error) {
+        // Open clean modal fallback if OAuth redirect fails or is blocked on mobile
+        setIsGoogleModalOpen(true);
       }
     } catch (err) {
-      console.warn('Redirect notice:', err);
+      console.warn('Google Auth notice:', err);
       setIsGoogleModalOpen(true);
     }
   };
