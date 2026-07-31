@@ -392,12 +392,112 @@ export function GameProvider({ children }) {
     }
   };
 
+  // Web Audio API buffer store & active node ref
+  const audioBufferMapRef = useRef(new Map());
+  const activeSourceNodeRef = useRef(null);
+
   const stopAudio = () => {
     stopTimer();
+    if (activeSourceNodeRef.current) {
+      try {
+        activeSourceNodeRef.current.stop();
+        activeSourceNodeRef.current.disconnect();
+      } catch (e) {}
+      activeSourceNodeRef.current = null;
+    }
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
+  };
+
+  // Web Audio API Preload Pipeline: In-memory AudioBuffer decoding
+  const preloadTrackAudioBuffer = async (track) => {
+    if (!track) return null;
+    const ctx = getAudioContext();
+    if (!ctx) return null;
+
+    let src = track.previewUrl;
+    try {
+      if (track.localAudioKey) {
+        const localUrl = await getOfflineAudioUrl(track.localAudioKey);
+        if (localUrl) src = localUrl;
+      }
+
+      if (!src || !track.artworkUrl) {
+        const resolved = await resolveAudioPreview(track.artist, track.title);
+        if (resolved) {
+          if (!src && resolved.previewUrl) src = resolved.previewUrl;
+          if (!track.artworkUrl && resolved.artworkUrl) track.artworkUrl = resolved.artworkUrl;
+        }
+      }
+
+      if (!src) return null;
+      const fastSrc = getFastAudioUrl(src);
+
+      if (audioBufferMapRef.current.has(fastSrc)) {
+        return audioBufferMapRef.current.get(fastSrc);
+      }
+
+      const resp = await fetch(fastSrc);
+      const arrayBuf = await resp.arrayBuffer();
+      const audioBuf = await ctx.decodeAudioData(arrayBuf);
+      audioBufferMapRef.current.set(fastSrc, audioBuf);
+      if (track.id) audioBufferMapRef.current.set(track.id, audioBuf);
+      return audioBuf;
+    } catch (e) {
+      console.warn('[WebAudio] Preload/decode error for:', track.title, e);
+      return null;
+    }
+  };
+
+  // Preload entire match pool in background with concurrency
+  const preloadMatchPoolBuffers = (pool) => {
+    if (!pool || !Array.isArray(pool)) return;
+    pool.forEach(track => {
+      preloadTrackAudioBuffer(track);
+    });
+  };
+
+  // Instant Playback via Web Audio API (0ms Latency)
+  const playTrackAudioBuffer = async (track) => {
+    stopAudio();
+    const ctx = getAudioContext();
+    let src = track?.previewUrl;
+    if (track?.localAudioKey) {
+      const localUrl = await getOfflineAudioUrl(track.localAudioKey);
+      if (localUrl) src = localUrl;
+    }
+    const fastSrc = src ? getFastAudioUrl(src) : null;
+
+    let cachedBuffer = (fastSrc && audioBufferMapRef.current.get(fastSrc)) ||
+                       (track?.id && audioBufferMapRef.current.get(track.id));
+
+    if (!cachedBuffer && track) {
+      cachedBuffer = await preloadTrackAudioBuffer(track);
+    }
+
+    if (cachedBuffer && ctx) {
+      try {
+        const source = ctx.createBufferSource();
+        source.buffer = cachedBuffer;
+        source.connect(ctx.destination);
+        source.start(0);
+        activeSourceNodeRef.current = source;
+        return true;
+      } catch (e) {
+        console.warn('[WebAudio] BufferSource start error:', e);
+      }
+    }
+
+    // Fallback to HTML5 audio if Web Audio API buffer wasn't preloaded
+    if (fastSrc && audioRef.current) {
+      audioRef.current.src = fastSrc;
+      audioRef.current.currentTime = 0;
+      audioRef.current.volume = 1.0;
+      audioRef.current.play().catch(e => console.warn('[Audio] HTML5 fallback play error:', e));
+    }
+    return false;
   };
 
   const startRoundTimer = () => {
@@ -590,98 +690,53 @@ export function GameProvider({ children }) {
 
     setSelectedChoice(null);
     setAnswerFeedback(null);
-    setIsAudioLoading(true);
     setRemainingTime(10.0);
     setRoundStatus('PLAYING');
     setCurrentChoices(choices);
 
-    let src = track.previewUrl;
-    try {
-      if (track.localAudioKey) {
-        const localUrl = await getOfflineAudioUrl(track.localAudioKey);
-        if (localUrl) src = localUrl;
-      }
+    // PRIMO BRANO (index === 0): Esegue il conto alla rovescia di preparazione 3..2..1 SOLO alla prima canzone
+    if (index === 0) {
+      setIsAudioLoading(true);
 
-      if (!src || !track.artworkUrl) {
-        const resolved = await resolveAudioPreview(track.artist, track.title);
-        if (resolved) {
-          if (!src && resolved.previewUrl) src = resolved.previewUrl;
-          if (!track.artworkUrl && resolved.artworkUrl) track.artworkUrl = resolved.artworkUrl;
+      // Precarica l'intero pool di brani in memoria Web Audio API in sottofondo
+      preloadMatchPoolBuffers(pool);
+
+      // Assicura il caricamento immediato del brano 1
+      await preloadTrackAudioBuffer(track);
+      setIsAudioLoading(false);
+
+      let currentCount = 3;
+      setPrepCountdown(3);
+      playSoundEffect('prep_tick');
+
+      prepIntervalRef.current = setInterval(() => {
+        currentCount -= 1;
+        setPrepCountdown(currentCount);
+
+        if (currentCount > 0) {
+          playSoundEffect('prep_tick');
+        } else {
+          clearPrepInterval();
+          setPrepCountdown(0);
+          playTrackAudioBuffer(track);
+          startRoundTimer();
         }
-      }
-
-      if (src) {
-        const fastSrc = getFastAudioUrl(src);
-        audioRef.current.pause();
-        audioRef.current.src = fastSrc;
-        audioRef.current.currentTime = 0;
-        audioRef.current.volume = 1.0;
-        audioRef.current.load();
-      }
-    } catch (e) {
-      console.warn('Audio prep error:', e);
+      }, 750);
+    } else {
+      // BRANI DA 2 A 10: RIPRODUZIONE ISTANTANEA 0MS SENZA COUNTDOWN!
+      setIsAudioLoading(false);
+      setPrepCountdown(0);
+      playTrackAudioBuffer(track);
+      startRoundTimer();
     }
-
-    setIsAudioLoading(false);
-
-    // Start 3..2..1 Preparation Countdown
-    let currentCount = 3;
-    setPrepCountdown(3);
-    playSoundEffect('prep_tick');
-
-    prepIntervalRef.current = setInterval(() => {
-      currentCount -= 1;
-      setPrepCountdown(currentCount);
-
-      if (currentCount > 0) {
-        playSoundEffect('prep_tick');
-      } else {
-        clearPrepInterval();
-        setPrepCountdown(0);
-
-        if (src && audioRef.current) {
-          audioRef.current.play().catch(e => console.warn('[Audio] Play error after prep:', e));
-        }
-        startRoundTimer();
-      }
-    }, 750);
-
-    // Background pre-buffering for next 2 tracks for zero-delay instant playback
-    setTimeout(() => {
-      [index + 1, index + 2].forEach(async (nextIdx) => {
-        if (nextIdx < pool.length) {
-          const nextTrack = pool[nextIdx];
-          if (nextTrack) {
-            if (!nextTrack.previewUrl) {
-              const res = await resolveAudioPreview(nextTrack.artist, nextTrack.title);
-              if (res?.previewUrl) {
-                nextTrack.previewUrl = res.previewUrl;
-                if (!nextTrack.artworkUrl && res.artworkUrl) nextTrack.artworkUrl = res.artworkUrl;
-              }
-            }
-            if (nextTrack.previewUrl) {
-              preloadAudio(nextTrack.previewUrl);
-            }
-          }
-        }
-      });
-    }, 20);
   };
 
   // Explicit manual audio trigger function for user tap
   const playAudio = () => {
     getAudioContext();
-    if (audioRef.current) {
-      if (audioRef.current.src) {
-        audioRef.current.play().catch(e => console.warn('Manual play failed:', e));
-      } else if (currentTrack) {
-        resolveAudioPreview(currentTrack.artist, currentTrack.title).then(resolved => {
-          if (resolved && resolved.previewUrl) {
-            audioRef.current.src = resolved.previewUrl;
-            audioRef.current.play().catch(e => console.warn('Resolved manual play failed:', e));
-          }
-        });
-      }
+    const currentTrack = trackList[trackIndex];
+    if (currentTrack) {
+      playTrackAudioBuffer(currentTrack);
     }
   };
 
