@@ -298,6 +298,15 @@ export function GameProvider({ children }) {
     return audioCtxRef.current;
   };
 
+  const [wrongSoundVariant, setWrongSoundVariant] = useState(() => {
+    const saved = localStorage.getItem('ten_seconds_wrong_sound');
+    return saved ? Number(saved) : 1; // Default: 1 (Soft Vinyl Scratch)
+  });
+
+  useEffect(() => {
+    localStorage.setItem('ten_seconds_wrong_sound', wrongSoundVariant);
+  }, [wrongSoundVariant]);
+
   // Catchy, Rich Arcade Sound Synth Effects using Web Audio API
   const playSoundEffect = (type) => {
     try {
@@ -306,7 +315,12 @@ export function GameProvider({ children }) {
 
       const now = ctx.currentTime;
 
-      if (type === 'correct') {
+      let effectType = type;
+      if (type === 'wrong') {
+        effectType = `wrong_${wrongSoundVariant}`;
+      }
+
+      if (effectType === 'correct') {
         // Triumphant 4-note ascending arcade sequence: C5 (523Hz) -> E5 (659Hz) -> G5 (784Hz) -> C6 (1046Hz)
         const notes = [523.25, 659.25, 783.99, 1046.50];
         
@@ -344,39 +358,84 @@ export function GameProvider({ children }) {
           osc2.stop(startTime + 0.2);
         });
 
-      } else if (type === 'wrong') {
-        // Punchy Arcade Fail Buzz with downward pitch sweep and dual thud
+      } else if (effectType === 'wrong_1') {
+        // 1. Soft Vinyl Scratch (Moderna & Elegante)
+        const osc = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(450, now);
+        osc.frequency.exponentialRampToValueAtTime(70, now + 0.15);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1400, now);
+        filter.frequency.exponentialRampToValueAtTime(140, now + 0.15);
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.16);
+
+      } else if (effectType === 'wrong_2') {
+        // 2. Retro Arcade Double-Bip (Simpatica & Chiara)
+        [329.63, 261.63].forEach((freq, idx) => {
+          const t = now + idx * 0.08;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.18, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.09);
+        });
+
+      } else if (effectType === 'wrong_3') {
+        // 3. Sub-Bass Thud (Deep & Minimalista)
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(220, now); // A3
-        osc.frequency.exponentialRampToValueAtTime(80, now + 0.35); // Rapid pitch drop to E2
-        
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
-        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(110, now);
+        osc.frequency.exponentialRampToValueAtTime(35, now + 0.18);
+        gain.gain.setValueAtTime(0.32, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
         osc.connect(gain);
         gain.connect(ctx.destination);
-        
         osc.start(now);
-        osc.stop(now + 0.38);
+        osc.stop(now + 0.2);
 
-        // Sub-bass thud
-        const subOsc = ctx.createOscillator();
-        const subGain = ctx.createGain();
-        subOsc.type = 'triangle';
-        subOsc.frequency.setValueAtTime(120, now);
-        subOsc.frequency.linearRampToValueAtTime(40, now + 0.3);
-        
-        subGain.gain.setValueAtTime(0.35, now);
-        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
-        
-        subOsc.connect(subGain);
-        subGain.connect(ctx.destination);
-        
-        subOsc.start(now);
-        subOsc.stop(now + 0.32);
+      } else if (effectType === 'wrong_4') {
+        // 4. Accordo Out-of-Tune (Musicale & Ironica)
+        [261.63, 277.18].forEach((freq) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.23);
+        });
+
+      } else if (effectType === 'wrong_5') {
+        // 5. Woodblock Click / Rimshot (Ultra-Discreta)
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(120, now + 0.06);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.07);
+
       } else if (type === 'prep_tick') {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -1114,6 +1173,9 @@ export function GameProvider({ children }) {
         nextRound,
         stopAudio,
         playAudio,
+        playSoundEffect,
+        wrongSoundVariant,
+        setWrongSoundVariant,
         isLivesModalOpen,
         setIsLivesModalOpen,
         watchRewardAd,

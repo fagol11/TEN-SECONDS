@@ -3,10 +3,11 @@ import { useGame } from '../context/GameContext';
 import { PLAYLISTS, CATEGORIES } from '../services/curatedCatalog';
 import { importSpotifyPlaylist } from '../services/spotifyService';
 import { downloadPlaylistForOffline } from '../services/offlineStorage';
-import { Play, Sparkles, Clock, Disc, UserCheck, Flag, Download, Check, Link, Music2, Award, Calendar } from 'lucide-react';
+import { Play, Sparkles, Clock, Disc, UserCheck, Flag, Download, Check, Link, Music2, Award, Calendar, Volume2 } from 'lucide-react';
+import SoundSelectorModal from './SoundSelectorModal';
 
 export default function CatalogScreen() {
-  const { startGame, startDailyChallenge, isOfflineMode, user, setUser } = useGame();
+  const { startGame, startDailyChallenge, isOfflineMode, user, setUser, wrongSoundVariant } = useGame();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [spotifyUrlInput, setSpotifyUrlInput] = useState('');
   const [isImporting, setIsImporting] = useState(false);
@@ -14,6 +15,7 @@ export default function CatalogScreen() {
   const [downloadProgress, setDownloadProgress] = useState(0);
 
   const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false);
+  const [isSoundModalOpen, setIsSoundModalOpen] = useState(false);
 
   const allAvailablePlaylists = [...(user.importedPlaylists || []), ...PLAYLISTS];
 
@@ -136,15 +138,32 @@ export default function CatalogScreen() {
           ))}
         </div>
 
-        {/* Dedicated Import Spotify Button (Justified Right) */}
-        <button
-          onClick={() => setIsSpotifyModalOpen(true)}
-          className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#1DB954]/20 transition-all shrink-0 active:scale-95 whitespace-nowrap sm:ml-auto"
-        >
-          <Link className="w-4 h-4 stroke-[2.5]" />
-          <span>Importa Playlist Spotify</span>
-        </button>
+        {/* Dedicated Import Spotify & Sound Selector Buttons */}
+        <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">
+          <button
+            onClick={() => setIsSoundModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shrink-0 active:scale-95 whitespace-nowrap shadow-lg shadow-purple-500/10"
+            title="Scegli e ascolta le 5 varianti di suono per l'errore"
+          >
+            <Volume2 className="w-4 h-4 text-purple-400" />
+            <span>Suoni Errore</span>
+          </button>
+
+          <button
+            onClick={() => setIsSpotifyModalOpen(true)}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#1DB954] hover:bg-[#1ed760] text-black font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#1DB954]/20 transition-all shrink-0 active:scale-95 whitespace-nowrap"
+          >
+            <Link className="w-4 h-4 stroke-[2.5]" />
+            <span>Importa Spotify</span>
+          </button>
+        </div>
       </div>
+
+      {/* Interactive Sound Effect Selection Modal */}
+      <SoundSelectorModal
+        isOpen={isSoundModalOpen}
+        onClose={() => setIsSoundModalOpen(false)}
+      />
 
       {/* Spotify Import Modal Screen */}
       {isSpotifyModalOpen && (
