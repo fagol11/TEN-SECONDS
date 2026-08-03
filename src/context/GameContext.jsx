@@ -261,10 +261,10 @@ export function GameProvider({ children }) {
     }
   };
 
-  // Helper formula calcolo punteggio globale (punteggio moderato e progressione graduale)
+  // Helper formula calcolo punteggio globale (punteggio bilanciato a 200 PT per massima longevità)
   const computeScoreDetails = (currentStats, maxStreakCount, mode) => {
     const correctCount = currentStats.correct;
-    const basePoints = correctCount * 100; // 100 pt per risposta corretta
+    const basePoints = correctCount * 200; // 200 pt base per risposta corretta
     const avgCorrectTimeSec = correctCount > 0 
       ? Number((currentStats.correctTimeMs / 1000 / correctCount).toFixed(1))
       : 10.0;
@@ -272,7 +272,7 @@ export function GameProvider({ children }) {
     const speedMultiplier = Number(rawMultiplier.toFixed(2));
     const speedBonusPoints = Math.round(basePoints * (speedMultiplier - 1.0));
     const streakBonusPoints = maxStreakCount * 20;
-    const dailyBonus = (mode === 'DAILY' && correctCount >= 10) ? 500 : 0;
+    const dailyBonus = (mode === 'DAILY' && correctCount >= 10) ? 1000 : 0;
     const finalTotalScore = basePoints + speedBonusPoints + streakBonusPoints + dailyBonus;
 
     return {
@@ -873,11 +873,11 @@ export function GameProvider({ children }) {
       setAnswerFeedback('CORRECT');
       playSoundEffect('correct');
 
-      // Calculate dynamic points for this track based on reaction speed & streak
+      // Calculate dynamic points for this track: 200 base + reaction speed bonus + streak bonus
       const timeRemaining = Math.max(0, remainingTime);
-      const speedPoints = Math.round(timeRemaining * 100); // 0 to 1000 points
-      const streakBonus = (newStreak - 1) * 150;
-      const pointsEarned = Math.max(100, speedPoints + streakBonus);
+      const speedPoints = Math.round((timeRemaining / 10.0) * 150); // 0 to 150 bonus points
+      const streakBonus = (newStreak - 1) * 20;
+      const pointsEarned = 200 + speedPoints + streakBonus;
 
       let titleText = 'PERFETTO! 🎵';
       if (timeRemaining >= 8.5) {
