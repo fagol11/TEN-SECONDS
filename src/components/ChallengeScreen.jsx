@@ -37,21 +37,58 @@ export default function ChallengeScreen() {
 
   const completedSet = new Set(user.completedChallenges || []);
 
+  const triggerNotification = (title, body) => {
+    try {
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification(title, { body, icon: '/favicon.ico' });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              new Notification(title, { body, icon: '/favicon.ico' });
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Notification trigger warning:', e);
+    }
+  };
+
+  const [isPlaylistModalOpen1v1, setIsPlaylistModalOpen1v1] = useState(false);
+  const [isPlaylistModalOpenTournament, setIsPlaylistModalOpenTournament] = useState(false);
+
   const handleGenerate1v1 = () => {
     const code = `TEN-${selectedPlaylist1v1.id.toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
     setChallengeCode(code);
+    triggerNotification('TEN SECONDS - Sfida Pronta! ⚔️', `Codice Sfida generato per ${selectedFriend}: ${code}`);
   };
 
   const handleCopy1v1 = () => {
-    const url = `${window.location.origin}?challenge=${challengeCode}`;
-    navigator.clipboard.writeText(url);
+    const inviteText = `🎵 TEN SECONDS - Ti ho sfidato a indovinare le canzoni! ⚔️\nAmico sfidato: ${selectedFriend}\nPlaylist: ${selectedPlaylist1v1.title}\nCodice Sfida: ${challengeCode}\nInserisci il codice nell'app per accettare la sfida!`;
+    navigator.clipboard.writeText(inviteText);
     setCopiedCode1v1(true);
     setTimeout(() => setCopiedCode1v1(false), 2000);
+  };
+
+  const handleShare1v1 = async () => {
+    const inviteText = `🎵 TEN SECONDS - Ti ho sfidato a indovinare le canzoni! ⚔️\nAmico sfidato: ${selectedFriend}\nPlaylist: ${selectedPlaylist1v1.title}\nCodice Sfida: ${challengeCode}\nInserisci il codice nell'app per accettare la sfida!`;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Sfida 1v1 TEN SECONDS',
+          text: inviteText,
+        });
+      } catch (err) {}
+    } else {
+      handleCopy1v1();
+    }
   };
 
   const handlePlay1v1 = () => {
     if (completedSet.has(challengeCode)) return;
     recordWin('CHALLENGE');
+    triggerNotification('TEN SECONDS - Sfida Avviata 🚀', `Hai sfidato ${selectedFriend} sulla playlist ${selectedPlaylist1v1.title}!`);
     // Start real-time session — broadcasts scores live to opponent
     if (startMatchSession) {
       startMatchSession(challengeCode, selectedPlaylist1v1, 'CHALLENGE', null, challengeCode, songCount);
@@ -86,8 +123,8 @@ export default function ChallengeScreen() {
   };
 
   const handleCopyTournament = () => {
-    const url = `${window.location.origin}?tournament=${tournamentCode}`;
-    navigator.clipboard.writeText(url);
+    const inviteText = `🏆 TEN SECONDS - Partecipa al Torneo "${tournamentName}"!\nPlaylist: ${selectedPlaylistTournament.title}\nCodice Torneo: ${tournamentCode}\nInserisci il codice nell'app TEN SECONDS!`;
+    navigator.clipboard.writeText(inviteText);
     setCopiedCodeTournament(true);
     setTimeout(() => setCopiedCodeTournament(false), 2000);
   };
@@ -130,7 +167,7 @@ export default function ChallengeScreen() {
               : 'text-slate-400 hover:text-white'
           }`}
         >
-          <Swords className="w-3.5 h-3.5" /> 1v1 Amico
+          <Swords className="w-3.5 h-3.5" /> 1vs1
         </button>
 
         <button
@@ -220,17 +257,17 @@ export default function ChallengeScreen() {
         </div>
       </div>
 
-      {/* --- MODE 1: 1v1 SFIDA CON UN AMICO --- */}
+      {/* --- MODE 1: SFIDA 1VS1 CON UN AMICO --- */}
       {activeTab === '1v1' && (
         <div className="glass-card p-6 rounded-2xl border border-purple-500/30 space-y-5 animate-fadeIn">
           
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1.5">Seleziona l'Amico da Sfidare</label>
               <select
                 value={selectedFriend}
                 onChange={(e) => setSelectedFriend(e.target.value)}
-                className="w-full bg-black/50 border border-white/10 p-3 rounded-xl text-xs text-white focus:outline-none focus:border-purple-400"
+                className="w-full bg-black/50 border border-white/10 p-3 rounded-xl text-xs text-white focus:outline-none focus:border-purple-400 font-semibold"
               >
                 {(user.friends || ['Marco_90', 'Elena_Rock', 'Giuseppe_Bass']).map(f => (
                   <option key={f} value={f} className="bg-slate-900 text-white">
@@ -240,22 +277,39 @@ export default function ChallengeScreen() {
               </select>
             </div>
 
+            {/* Custom Styled Playlist Selector Dropdown / Card */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">Seleziona Playlist per la Sfida 1v1</label>
-              <select
-                value={selectedPlaylist1v1.id}
-                onChange={(e) => {
-                  const found = PLAYLISTS.find(p => p.id === e.target.value);
-                  if (found) setSelectedPlaylist1v1(found);
-                }}
-                className="w-full bg-black/50 border border-white/10 p-3 rounded-xl text-xs text-white focus:outline-none focus:border-purple-400"
+              <label className="block text-xs font-bold text-slate-300 mb-1.5">Playlist Selezionata per la Sfida 1vs1</label>
+              
+              <div
+                onClick={() => setIsPlaylistModalOpen1v1(true)}
+                className="p-3 bg-black/60 border border-purple-500/40 hover:border-purple-400 rounded-2xl flex items-center justify-between cursor-pointer transition-all group"
               >
-                {PLAYLISTS.map(p => (
-                  <option key={p.id} value={p.id} className="bg-slate-900 text-white">
-                    {p.title} ({p.tracks.length} Brani)
-                  </option>
-                ))}
-              </select>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={selectedPlaylist1v1.cover}
+                    alt={selectedPlaylist1v1.title}
+                    className="w-12 h-12 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform"
+                  />
+                  <div>
+                    <div className="font-display font-black text-sm text-white group-hover:text-purple-300 transition-colors">
+                      {selectedPlaylist1v1.title}
+                    </div>
+                    <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                      <span className="font-mono text-purple-400 font-bold">{selectedPlaylist1v1.tracks.length} Brani</span>
+                      <span>•</span>
+                      <span className="bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase">{selectedPlaylist1v1.badge}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded-xl bg-purple-600/30 text-purple-300 font-bold text-xs group-hover:bg-purple-600 group-hover:text-white transition-all shrink-0"
+                >
+                  CAMBIA 🎵
+                </button>
+              </div>
             </div>
           </div>
 
@@ -263,39 +317,120 @@ export default function ChallengeScreen() {
             onClick={handleGenerate1v1}
             className="w-full py-3 bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/40 text-purple-300 font-bold text-xs rounded-xl transition-all"
           >
-            GENERA CODICE SFIDA 1V1
+            GENERA CODICE SFIDA 1VS1
           </button>
 
-          <div className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center justify-between">
+          <div className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center justify-between gap-2">
             <div>
-              <div className="text-[10px] uppercase font-bold text-slate-400">Codice Sfida 1v1 ({selectedFriend})</div>
+              <div className="text-[10px] uppercase font-bold text-slate-400">Codice Sfida 1vs1 ({selectedFriend})</div>
               <div className="font-mono font-black text-lg text-purple-300">{challengeCode}</div>
             </div>
 
-            <button
-              onClick={handleCopy1v1}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-semibold text-white transition-all"
-            >
-              {copiedCode1v1 ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-              {copiedCode1v1 ? 'Copiato!' : 'Copia Link'}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleShare1v1}
+                className="flex items-center gap-1.5 px-3 py-2 bg-purple-600/40 hover:bg-purple-600 rounded-lg text-xs font-bold text-white transition-all shadow-md"
+              >
+                <Share2 className="w-4 h-4" /> Condividi
+              </button>
+              
+              <button
+                onClick={handleCopy1v1}
+                className="flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-semibold text-white transition-all"
+              >
+                {copiedCode1v1 ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                {copiedCode1v1 ? 'Copiato!' : 'Copia'}
+              </button>
+            </div>
           </div>
 
           {/* One-Time Play Rule Notice */}
           {completedSet.has(challengeCode) ? (
             <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-bold flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-              <span>Questa sfida 1v1 è già stata giocata e completata! Non è possibile ripeterla.</span>
+              <span>Questa sfida 1vs1 è già stata giocata e completata! Non è possibile ripeterla.</span>
             </div>
           ) : (
             <button
               onClick={handlePlay1v1}
               className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-black font-display text-base flex items-center justify-center gap-2 shadow-xl shadow-purple-500/25 hover:brightness-110 active:scale-[0.98] transition-all"
             >
-              <Play className="w-5 h-5 fill-current" /> AVVIA SFIDA 1V1 ORA
+              <Play className="w-5 h-5 fill-current" /> AVVIA SFIDA 1VS1 ORA
             </button>
           )}
 
+        </div>
+      )}
+
+      {/* --- PLAYLIST SELECTOR MODAL FOR 1V1 & TOURNAMENT --- */}
+      {(isPlaylistModalOpen1v1 || isPlaylistModalOpenTournament) && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-slate-900 border border-purple-500/40 rounded-3xl p-5 max-w-lg w-full space-y-4 max-h-[85vh] flex flex-col shadow-2xl relative">
+            
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h3 className="font-display font-black text-lg text-white">SCEGLI LA PLAYLIST</h3>
+                <p className="text-xs text-slate-400">Seleziona la lista brani per la tua sfida</p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsPlaylistModalOpen1v1(false);
+                  setIsPlaylistModalOpenTournament(false);
+                }}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="overflow-y-auto space-y-2.5 pr-1 flex-1 scrollbar-none">
+              {PLAYLISTS.map((plist) => {
+                const isSelected = isPlaylistModalOpen1v1 
+                  ? selectedPlaylist1v1.id === plist.id
+                  : selectedPlaylistTournament.id === plist.id;
+
+                return (
+                  <div
+                    key={plist.id}
+                    onClick={() => {
+                      if (isPlaylistModalOpen1v1) {
+                        setSelectedPlaylist1v1(plist);
+                        setIsPlaylistModalOpen1v1(false);
+                      } else {
+                        setSelectedPlaylistTournament(plist);
+                        setIsPlaylistModalOpenTournament(false);
+                      }
+                    }}
+                    className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                      isSelected
+                        ? 'bg-purple-600/30 border-purple-400 shadow-lg shadow-purple-500/20'
+                        : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={plist.cover}
+                        alt={plist.title}
+                        className="w-12 h-12 rounded-xl object-cover border border-white/10"
+                      />
+                      <div>
+                        <div className="font-display font-bold text-sm text-white">{plist.title}</div>
+                        <div className="text-[11px] text-slate-400">{plist.description}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-purple-300 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/30 shrink-0">
+                        {plist.tracks.length} Brani
+                      </span>
+                      {isSelected && <Check className="w-5 h-5 text-purple-400 shrink-0" />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+          </div>
         </div>
       )}
 
@@ -418,22 +553,39 @@ export default function ChallengeScreen() {
               </div>
             </div>
 
+            {/* Custom Styled Playlist Selector Dropdown / Card for Tournament */}
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1.5">Playlist del Torneo</label>
-              <select
-                value={selectedPlaylistTournament.id}
-                onChange={(e) => {
-                  const found = PLAYLISTS.find(p => p.id === e.target.value);
-                  if (found) setSelectedPlaylistTournament(found);
-                }}
-                className="w-full bg-black/50 border border-white/10 p-3 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"
+              
+              <div
+                onClick={() => setIsPlaylistModalOpenTournament(true)}
+                className="p-3 bg-black/60 border border-amber-500/40 hover:border-amber-400 rounded-2xl flex items-center justify-between cursor-pointer transition-all group"
               >
-                {PLAYLISTS.map(p => (
-                  <option key={p.id} value={p.id} className="bg-slate-900 text-white">
-                    {p.title} ({p.tracks.length} Brani)
-                  </option>
-                ))}
-              </select>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={selectedPlaylistTournament.cover}
+                    alt={selectedPlaylistTournament.title}
+                    className="w-12 h-12 rounded-xl object-cover border border-white/10 group-hover:scale-105 transition-transform"
+                  />
+                  <div>
+                    <div className="font-display font-black text-sm text-white group-hover:text-amber-300 transition-colors">
+                      {selectedPlaylistTournament.title}
+                    </div>
+                    <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                      <span className="font-mono text-amber-400 font-bold">{selectedPlaylistTournament.tracks.length} Brani</span>
+                      <span>•</span>
+                      <span className="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase">{selectedPlaylistTournament.badge}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-300 font-bold text-xs group-hover:bg-amber-500 group-hover:text-slate-950 transition-all shrink-0"
+                >
+                  CAMBIA 🏆
+                </button>
+              </div>
             </div>
           </div>
 

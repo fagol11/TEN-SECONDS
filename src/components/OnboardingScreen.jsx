@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { Zap, Play, CheckCircle2, Music, ShieldCheck, Sparkles, Radio, LogIn, X } from 'lucide-react';
-import { signInWithGoogle } from '../services/supabaseClient';
+import { Zap, Play, CheckCircle2, Music, ShieldCheck, Sparkles, Radio, LogIn, X, Globe } from 'lucide-react';
+import { signInWithGoogle, signInWithGoogleIdToken } from '../services/supabaseClient';
 
 const GOOGLE_CLIENT_ID = '806365470000-uig4d8po2rt82chnhok0ik6s324mod8p.apps.googleusercontent.com';
 
@@ -9,6 +9,41 @@ export default function OnboardingScreen() {
   const { setUser, setActiveScreen } = useGame();
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [googleEmailInput, setGoogleEmailInput] = useState('');
+
+  useEffect(() => {
+    // Load Google Identity Services Script for seamless One-Tap / ID Token login
+    if (typeof window !== 'undefined' && !window.google?.accounts?.id) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        try {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: async (response) => {
+              if (response?.credential) {
+                const res = await signInWithGoogleIdToken(response.credential);
+                if (res?.data?.session?.user) {
+                  const u = res.data.session.user;
+                  const meta = u.user_metadata || {};
+                  setUser(prev => ({
+                    ...prev,
+                    name: meta.full_name || meta.name || u.email?.split('@')[0] || 'Fabrizio Goscè',
+                    email: u.email,
+                    avatar: meta.avatar_url || meta.picture || 'https://lh3.googleusercontent.com/a/ACg8ocKUwYRhaCf54m6mf6VvKEy9oRlc24j_iEYTqsVmocw3nbnKq5jH=s96-c',
+                    hasCompletedCalibration: true,
+                  }));
+                  setActiveScreen('CATALOG');
+                }
+              }
+            }
+          });
+        } catch (e) {}
+      };
+      document.body.appendChild(script);
+    }
+  }, [setUser, setActiveScreen]);
 
   const handleDemoLogin = () => {
     setUser(prev => ({
@@ -20,9 +55,12 @@ export default function OnboardingScreen() {
     setActiveScreen('CATALOG');
   };
 
-  const handleGoogleLogin = () => {
-    // Open in-app branded Google Login sheet directly (prevents exiting app or browser connection errors)
-    setIsGoogleModalOpen(true);
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (e) {
+      console.warn('[Google Auth] Direct login exception:', e);
+    }
   };
 
   const handleConfirmGoogleProfile = (e) => {
@@ -50,39 +88,6 @@ export default function OnboardingScreen() {
     setActiveScreen('CATALOG');
   };
 
-  // Listen for hash fragment token if returning from Google OAuth
-  React.useEffect(() => {
-    if (window.location.hash) {
-      if (window.location.hash.includes('access_token')) {
-        const params = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = params.get('access_token');
-        if (accessToken) {
-          fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${accessToken}` }
-          })
-            .then(res => res.json())
-            .then(data => {
-              if (data && (data.name || data.email)) {
-                setUser(prev => ({
-                  ...prev,
-                  name: data.given_name || data.name || 'Fabrizio',
-                  email: data.email || 'fabrizio.gosce@gmail.com',
-                  avatar: data.picture || prev.avatar,
-                  hasCompletedCalibration: true,
-                }));
-                window.history.replaceState(null, '', window.location.pathname);
-                setActiveScreen('CATALOG');
-              }
-            })
-            .catch(err => console.warn('Google UserInfo fetch error:', err));
-        }
-      } else if (window.location.hash.includes('error')) {
-        // Clean URL if origin is not yet whitelisted in Google Cloud Console
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    }
-  }, [setUser, setActiveScreen]);
-
   return (
     <div className="min-h-[calc(100vh-70px)] flex flex-col items-center justify-center p-4 max-w-xl mx-auto text-center">
       
@@ -101,32 +106,34 @@ export default function OnboardingScreen() {
       </p>
 
       {/* Login Options Container */}
-      <div className="w-full max-w-sm space-y-3 mb-8">
+      <div className="w-full max-w-sm space-y-3.5 mb-8">
         
-        {/* 1. Demo Login Button */}
-        <button
-          onClick={handleDemoLogin}
-          className="w-full py-4 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black font-display text-base flex items-center justify-center gap-2 shadow-xl shadow-emerald-500/25 hover:brightness-110 active:scale-[0.98] transition-all"
-        >
-          <Zap className="w-5 h-5 fill-current" /> GIOCA LA DEMO
-        </button>
-
-        {/* 2. Google Login Option */}
+        {/* 1. Primary Google Login Button */}
         <button
           onClick={handleGoogleLogin}
-          className="w-full py-3.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 font-semibold text-sm flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
+          className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-slate-950 font-black font-display text-sm tracking-wide flex items-center justify-center gap-3 border border-emerald-400/40 shadow-xl shadow-emerald-500/25 hover:brightness-110 active:scale-[0.98] transition-all"
         >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z"/>
-            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
-            <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.2-2 .4-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.9z"/>
-            <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"/>
+          {/* Official Multi-Color Google G Icon Without White Background */}
+          <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.15C3.26 21.3 7.31 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.39l3.99-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.61l3.99 3.15c.95-2.85 3.6-4.96 6.72-4.96z"/>
           </svg>
-          Accedi con Google
+          <span>ACCEDI CON GOOGLE</span>
         </button>
 
-        <p className="text-xs text-slate-500">
-          Accedi con il tuo account Google per salvare i punteggi e sfidare i tuoi amici.
+        {/* 2. Demo Quick Play Button */}
+        <button
+          onClick={handleDemoLogin}
+          className="w-full py-3.5 px-5 rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-extrabold font-display text-sm tracking-wide flex items-center justify-center gap-3 border border-white/20 hover:border-emerald-500/50 shadow-lg shadow-black/40 transition-all active:scale-[0.98]"
+        >
+          <Zap className="w-5 h-5 text-emerald-400 fill-current shrink-0" />
+          <span>GIOCA COME OSPITE DEMO</span>
+        </button>
+
+        <p className="text-[11px] text-slate-500">
+          I tuoi punteggi, trofei e posizioni in classifica saranno sincronizzati automaticamente col tuo profilo Google.
         </p>
       </div>
 
@@ -141,72 +148,6 @@ export default function OnboardingScreen() {
           <span>Modalità offline con 15+ pacchetti scaricabili</span>
         </div>
       </div>
-
-      {/* Branded Google Sign-In Sheet (In-App — Never exits game) */}
-      {isGoogleModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-slate-900 border border-white/15 rounded-3xl p-6 max-w-sm w-full text-center space-y-5 shadow-2xl relative">
-            
-            <button
-              onClick={() => setIsGoogleModalOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-400 hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            {/* Brand Header */}
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-md shadow-emerald-500/20">
-                <Zap className="w-5 h-5 text-slate-950 stroke-[2.5]" />
-              </div>
-              <span className="font-display font-black text-xl tracking-tight text-white">
-                TEN <span className="text-emerald-400">SECONDS</span>
-              </span>
-            </div>
-
-            {/* Google G Logo & Title */}
-            <div className="space-y-1.5 pt-1">
-              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center mx-auto shadow-lg border border-white/20">
-                <svg className="w-6 h-6" viewBox="0 0 24 24">
-                  <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z"/>
-                  <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
-                  <path fill="#FBBC05" d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.7s.2-2 .4-2.7L1.6 6.4C.6 8.4 0 10.6 0 13s.6 4.6 1.6 6.6l3.7-2.9z"/>
-                  <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"/>
-                </svg>
-              </div>
-
-              <h3 className="text-lg font-black text-white font-display">Accedi con Google</h3>
-              <p className="text-xs text-slate-400">
-                Inserisci la tua email Google o il tuo Nome per accedere:
-              </p>
-            </div>
-
-            <form onSubmit={handleConfirmGoogleProfile} className="space-y-3 pt-1">
-              <input
-                type="text"
-                placeholder="es. fabrizio.gosce@gmail.com"
-                value={googleEmailInput}
-                onChange={(e) => setGoogleEmailInput(e.target.value)}
-                autoFocus
-                className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-sm font-bold text-center focus:outline-none focus:border-emerald-400 transition-all"
-              />
-
-              <button
-                type="submit"
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 text-slate-950 font-black font-display text-sm transition-all shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-2"
-              >
-                <LogIn className="w-4 h-4 stroke-[2.5]" />
-                CONFERMA E GIOCA
-              </button>
-            </form>
-
-            <p className="text-[11px] text-slate-500 leading-tight">
-              L'accesso in-app conserva i tuoi dati di gioco, trofei e posizioni in classifica in modo sicuro senza uscire dal gioco.
-            </p>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

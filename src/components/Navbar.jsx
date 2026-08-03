@@ -185,7 +185,7 @@ export default function Navbar() {
             title="Note di Fila 🎵"
           >
             <Music2 className="w-3.5 h-3.5 fill-current text-cyan-400 shrink-0" />
-            <span className="font-black truncate">{user.noteStreak || 1}</span>
+            <span className="font-black truncate">{user.noteStreak ?? 0}</span>
           </div>
 
           {/* Rank Level & Score */}

@@ -7,8 +7,11 @@ export const CATEGORIES = [
   { id: 'all', name: 'Tutti i Brani', icon: 'Sparkles', color: 'from-emerald-500 to-teal-700' },
   { id: 'decades', name: 'Decadi', icon: 'Clock', color: 'from-cyan-500 to-blue-700' },
   { id: 'genres', name: 'Generi', icon: 'Disc', color: 'from-purple-500 to-indigo-700' },
-  { id: 'artists', name: 'Best of Artisti', icon: 'UserCheck', color: 'from-pink-500 to-rose-700' },
   { id: 'italian', name: 'Musica Italiana', icon: 'Flag', color: 'from-amber-500 to-orange-700' },
+  { id: 'cinema', name: 'Cinema & TV', icon: 'Film', color: 'from-rose-500 to-red-700' },
+  { id: 'hiphop', name: 'Hip-Hop & Trap', icon: 'Zap', color: 'from-fuchsia-500 to-pink-700' },
+  { id: 'latin', name: 'Reggaeton & Latino', icon: 'Flame', color: 'from-orange-500 to-yellow-700' },
+  { id: 'artists', name: 'Best of Artisti', icon: 'UserCheck', color: 'from-teal-500 to-emerald-700' },
 ];
 
 export const PLAYLISTS = [
@@ -444,33 +447,22 @@ export const ALL_MASTER_TRACKS = PLAYLISTS.flatMap(p => p.tracks);
  * Prioritizes tracks that haven't been played in the current session.
  */
 export function getRandomizedTrackPool(playlist, targetCount = 10, playedSet = new Set()) {
-  let pool = playlist?.tracks || [];
+  if (!playlist || !playlist.tracks || playlist.tracks.length === 0) return [];
 
-  // Combine with matching category/genre tracks if pool is expanded
-  const categoryPlaylists = PLAYLISTS.filter(p => p.category === playlist?.category || p.id === playlist?.id);
-  const extraPool = categoryPlaylists.flatMap(p => p.tracks);
+  // Strictly use ONLY the tracks belonging to this specific playlist
+  let available = playlist.tracks.filter(t => !playedSet.has(t.id));
 
-  const mergedMap = new Map();
-  pool.forEach(t => mergedMap.set(t.id, t));
-  extraPool.forEach(t => mergedMap.set(t.id, t));
-  const fullPool = Array.from(mergedMap.values());
-
-  // Filter unplayed tracks
-  let available = fullPool.filter(t => !playedSet.has(t.id));
-
-  // Reset if available is smaller than targetCount
+  // Reset played history if remaining available tracks are fewer than required targetCount
   if (available.length < targetCount) {
     playedSet.clear();
-    available = [...fullPool];
+    available = [...playlist.tracks];
   }
 
-  // Shuffle and pick targetCount tracks
+  // Shuffle randomly and return exact target count
   const shuffled = [...available].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, targetCount);
+  const selected = shuffled.slice(0, Math.min(targetCount, playlist.tracks.length));
 
-  // Mark selected as played
   selected.forEach(t => playedSet.add(t.id));
-
   return selected;
 }
 
@@ -486,49 +478,68 @@ export function generateChoicesForTrack(targetTrack, allTracksPool = ALL_MASTER_
 
   const isTargetItalian = isItalian(targetTrack);
 
-  // Filter candidates: must match target language (Italian vs International) and not be the target track
+  // Candidate pool: must match language and not be target track
   const candidates = allTracksPool.filter(t => 
     t.id !== targetTrack.id && 
-    t.title !== targetTrack.title && 
+    t.title.toLowerCase() !== targetTrack.title.toLowerCase() && 
     isItalian(t) === isTargetItalian
   );
 
-  // Prefer candidates with matching genre first
+  // Strict genre matching: priority 1 = exact same genre/style
   const sameGenre = candidates.filter(t => t.genre === targetTrack.genre);
-  const diffGenre = candidates.filter(t => t.genre !== targetTrack.genre);
-  
-  const shuffled = [
+  // Priority 2 = compatible genres (e.g. Rock + Indie, Pop + Disco, etc.)
+  const compatibleGenre = candidates.filter(t => {
+    if (t.genre === targetTrack.genre) return false;
+    if (targetTrack.genre === 'Rock' || targetTrack.genre === 'Indie') return t.genre === 'Rock' || t.genre === 'Indie';
+    if (targetTrack.genre === 'Pop' || targetTrack.genre === 'Dance' || targetTrack.genre === 'Disco') return ['Pop', 'Dance', 'Disco'].includes(t.genre);
+    if (targetTrack.genre === 'Hip-Hop') return t.genre === 'Hip-Hop' || t.genre === 'Latin';
+    return false;
+  });
+
+  const remaining = candidates.filter(t => !sameGenre.includes(t) && !compatibleGenre.includes(t));
+
+  const sortedPool = [
     ...sameGenre.sort(() => Math.random() - 0.5),
-    ...diffGenre.sort(() => Math.random() - 0.5)
+    ...compatibleGenre.sort(() => Math.random() - 0.5),
+    ...remaining.sort(() => Math.random() - 0.5)
   ];
   
-  for (const item of shuffled) {
+  for (const item of sortedPool) {
     if (choices.length >= 4) break;
-    if (!choices.some(c => c.title === item.title && c.artist === item.artist)) {
+    if (!choices.some(c => c.title.toLowerCase() === item.title.toLowerCase())) {
       choices.push(item);
     }
   }
   
   // Language-matched fallbacks in case candidates pool is small
   const fallbackDistractors = isTargetItalian ? [
-    { title: 'Volare (Nel blu dipinto di blu)', artist: 'Domenico Modugno' },
-    { title: 'Ti Amo', artist: 'Umberto Tozzi' },
-    { title: 'L\'Italiano', artist: 'Toto Cutugno' },
-    { title: 'Con Te Partirò', artist: 'Andrea Bocelli' },
-    { title: 'Azzurro', artist: 'Adriano Celentano' }
+    { title: 'Volare (Nel blu dipinto di blu)', artist: 'Domenico Modugno', genre: 'Italian' },
+    { title: 'Ti Amo', artist: 'Umberto Tozzi', genre: 'Italian' },
+    { title: 'L\'Italiano', artist: 'Toto Cutugno', genre: 'Italian' },
+    { title: 'Con Te Partirò', artist: 'Andrea Bocelli', genre: 'Italian' },
+    { title: 'Azzurro', artist: 'Adriano Celentano', genre: 'Italian' }
+  ] : targetTrack.genre === 'Hip-Hop' ? [
+    { title: 'Nuthin\' but a \'G\' Thang', artist: 'Dr. Dre', genre: 'Hip-Hop' },
+    { title: 'Hypnotize', artist: 'The Notorious B.I.G.', genre: 'Hip-Hop' },
+    { title: 'Changes', artist: '2Pac', genre: 'Hip-Hop' },
+    { title: 'Ruff Ryders\' Anthem', artist: 'DMX', genre: 'Hip-Hop' }
+  ] : targetTrack.genre === 'Rock' ? [
+    { title: 'Sweet Child O\' Mine', artist: 'Guns N\' Roses', genre: 'Rock' },
+    { title: 'Back in Black', artist: 'AC/DC', genre: 'Rock' },
+    { title: 'Livin\' on a Prayer', artist: 'Bon Jovi', genre: 'Rock' },
+    { title: 'Smells Like Teen Spirit', artist: 'Nirvana', genre: 'Rock' }
   ] : [
-    { title: 'Bohemian Rhapsody', artist: 'Queen' },
-    { title: 'Hotel California', artist: 'Eagles' },
-    { title: 'Stairway to Heaven', artist: 'Led Zeppelin' },
-    { title: 'Shape of You', artist: 'Ed Sheeran' },
-    { title: 'Blinding Lights', artist: 'The Weeknd' }
+    { title: 'Billie Jean', artist: 'Michael Jackson', genre: 'Pop' },
+    { title: 'Take On Me', artist: 'a-ha', genre: 'Pop' },
+    { title: 'Sweet Dreams', artist: 'Eurythmics', genre: 'Pop' },
+    { title: 'Shape of You', artist: 'Ed Sheeran', genre: 'Pop' }
   ];
   
   let fallbackIdx = 0;
   while (choices.length < 4 && fallbackIdx < fallbackDistractors.length) {
     const f = fallbackDistractors[fallbackIdx++];
-    if (!choices.some(c => c.title === f.title)) {
-      choices.push({ id: 'mock-' + fallbackIdx, title: f.title, artist: f.artist });
+    if (!choices.some(c => c.title.toLowerCase() === f.title.toLowerCase())) {
+      choices.push({ id: 'mock-' + fallbackIdx, title: f.title, artist: f.artist, genre: f.genre });
     }
   }
 

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { PLAYLISTS, generateChoicesForTrack, getCalibrationTracks, getRandomizedTrackPool, ALL_MASTER_TRACKS } from '../services/curatedCatalog';
-import { saveOfflineScore, getOfflineAudioUrl } from '../services/offlineStorage';
+import { saveOfflineScore, getOfflineAudioUrl, syncOfflineScores } from '../services/offlineStorage';
 import { resolveAudioPreview, preloadAudio, getFastAudioUrl } from '../services/audioResolver';
-import { supabase, signInWithGoogle, signOutSupabase } from '../services/supabaseClient';
+import { supabase, signInWithGoogle, signOutSupabase, saveScoreToSupabase } from '../services/supabaseClient';
 import { createMatchSession } from '../services/matchService';
 import { showRewardedAdForLife } from '../services/admobService';
 import PlayerProfileModal from '../components/PlayerProfileModal';
@@ -12,25 +12,25 @@ const GameContext = createContext(null);
 
 export const LISTENER_RANKS = [
   { level: 1, name: 'Suonatore di Citofono', minScore: 0, color: 'text-slate-400', icon: '🔔' },
-  { level: 2, name: 'Singer da Doccia', minScore: 5000, color: 'text-slate-300', icon: '🚿' },
-  { level: 3, name: 'Singer da Luna Piena', minScore: 15000, color: 'text-cyan-400', icon: '🌕' },
-  { level: 4, name: 'Cacciatore di Hit', minScore: 35000, color: 'text-teal-400', icon: '🎵' },
-  { level: 5, name: 'DJ del Venerdì Sera', minScore: 70000, color: 'text-emerald-400', icon: '📻' },
-  { level: 6, name: 'Ascoltatore da Bus', minScore: 120000, color: 'text-green-400', icon: '🎧' },
-  { level: 7, name: 'Orecchio Fino', minScore: 180000, color: 'text-lime-400', icon: '⚡' },
-  { level: 8, name: 'Chitarrista da Falò', minScore: 260000, color: 'text-yellow-400', icon: '🎸' },
-  { level: 9, name: 'Urla-in-Macchina Pro', minScore: 350000, color: 'text-amber-400', icon: '🚗' },
-  { level: 10, name: 'Music Buff', minScore: 460000, color: 'text-orange-400', icon: '🔥' },
-  { level: 11, name: 'Re del Karaoke', minScore: 580000, color: 'text-rose-400', icon: '🎤' },
-  { level: 12, name: 'Tamburellatore da Scrivania', minScore: 720000, color: 'text-pink-400', icon: '🥁' },
-  { level: 13, name: 'Producer da Salotto', minScore: 880000, color: 'text-fuchsia-400', icon: '🎛️' },
-  { level: 14, name: 'Vinyl Wizard', minScore: 1050000, color: 'text-purple-400', icon: '👑' },
-  { level: 15, name: 'Enciclopedia Vivente', minScore: 1230000, color: 'text-violet-400', icon: '🔮' },
-  { level: 16, name: 'Audio Virtuoso', minScore: 1420000, color: 'text-indigo-400', icon: '🌟' },
-  { level: 17, name: 'Rockstar Prodigy', minScore: 1620000, color: 'text-blue-400', icon: '💫' },
-  { level: 18, name: 'Sonic Maestro', minScore: 1830000, color: 'text-cyan-300', icon: '🚀' },
-  { level: 19, name: 'Shazam Umano', minScore: 2050000, color: 'text-emerald-300', icon: '🌌' },
-  { level: 20, name: 'Legend of Sound', minScore: 2300000, color: 'text-yellow-300', icon: '🏆' },
+  { level: 2, name: 'Singer da Doccia', minScore: 1000, color: 'text-slate-300', icon: '🚿' },
+  { level: 3, name: 'Singer da Luna Piena', minScore: 3000, color: 'text-cyan-400', icon: '🌕' },
+  { level: 4, name: 'Cacciatore di Hit', minScore: 7000, color: 'text-teal-400', icon: '🎵' },
+  { level: 5, name: 'DJ del Venerdì Sera', minScore: 15000, color: 'text-emerald-400', icon: '📻' },
+  { level: 6, name: 'Ascoltatore da Bus', minScore: 27000, color: 'text-green-400', icon: '🎧' },
+  { level: 7, name: 'Orecchio Fino', minScore: 45000, color: 'text-lime-400', icon: '⚡' },
+  { level: 8, name: 'Chitarrista da Falò', minScore: 70000, color: 'text-yellow-400', icon: '🎸' },
+  { level: 9, name: 'Urla-in-Macchina Pro', minScore: 100000, color: 'text-amber-400', icon: '🚗' },
+  { level: 10, name: 'Music Buff', minScore: 140000, color: 'text-orange-400', icon: '🔥' },
+  { level: 11, name: 'Re del Karaoke', minScore: 190000, color: 'text-rose-400', icon: '🎤' },
+  { level: 12, name: 'Tamburellatore da Scrivania', minScore: 250000, color: 'text-pink-400', icon: '🥁' },
+  { level: 13, name: 'Producer da Salotto', minScore: 320000, color: 'text-fuchsia-400', icon: '🎛️' },
+  { level: 14, name: 'Vinyl Wizard', minScore: 400000, color: 'text-purple-400', icon: '👑' },
+  { level: 15, name: 'Enciclopedia Vivente', minScore: 500000, color: 'text-violet-400', icon: '🔮' },
+  { level: 16, name: 'Audio Virtuoso', minScore: 650000, color: 'text-indigo-400', icon: '🌟' },
+  { level: 17, name: 'Rockstar Prodigy', minScore: 850000, color: 'text-blue-400', icon: '💫' },
+  { level: 18, name: 'Sonic Maestro', minScore: 1100000, color: 'text-cyan-300', icon: '🚀' },
+  { level: 19, name: 'Shazam Umano', minScore: 1400000, color: 'text-emerald-300', icon: '🌌' },
+  { level: 20, name: 'Legend of Sound', minScore: 1800000, color: 'text-yellow-300', icon: '🏆' },
 ];
 
 export function getUserRankAndClasse(score) {
@@ -40,8 +40,8 @@ export function getUserRankAndClasse(score) {
   }
 
   let classe = 0;
-  if (score > 2300000) {
-    classe = Math.floor((score - 2300000) / 500000) + 1;
+  if (score > 1800000) {
+    classe = Math.floor((score - 1800000) / 400000) + 1;
   }
 
   return { ...rankObj, classe };
@@ -106,7 +106,13 @@ export function GameProvider({ children }) {
   const [isOfflineMode, setIsOfflineMode] = useState(!navigator.onLine);
 
   useEffect(() => {
-    const handleOnline = () => setIsOfflineMode(false);
+    const handleOnline = () => {
+      setIsOfflineMode(false);
+      // Sync any scores accumulated while offline
+      syncOfflineScores().then(count => {
+        if (count > 0) console.log(`[Sync] ${count} offline scores synced`);
+      }).catch(() => {});
+    };
     const handleOffline = () => setIsOfflineMode(true);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -140,11 +146,30 @@ export function GameProvider({ children }) {
 
   // --- AUTH SESSION LISTENER (Supabase & Google OAuth) ---
   useEffect(() => {
-    // 1. Supabase Auth listener
+    // 1. Initial Session Check on Mount (handles existing sessions & OAuth redirects)
+    supabase.auth.getSession().then(({ data }) => {
+      if (data?.session?.user) {
+        const u = data.session.user;
+        const meta = u.user_metadata || {};
+        const fullName = meta.full_name || meta.name || u.email?.split('@')[0] || 'Fabrizio Goscè';
+        const avatarUrl = meta.avatar_url || meta.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+
+        setUser(prev => ({
+          ...prev,
+          name: fullName,
+          email: u.email,
+          avatar: avatarUrl,
+          hasCompletedCalibration: true
+        }));
+        setActiveScreen('CATALOG');
+      }
+    }).catch(err => console.warn('[Supabase Auth] Session check notice:', err));
+
+    // 2. Realtime Auth State Listener
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         const meta = session.user.user_metadata || {};
-        const fullName = meta.full_name || meta.name || session.user.email?.split('@')[0] || 'Utente Google';
+        const fullName = meta.full_name || meta.name || session.user.email?.split('@')[0] || 'Fabrizio Goscè';
         const avatarUrl = meta.avatar_url || meta.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
         
         setUser(prev => ({
@@ -156,38 +181,14 @@ export function GameProvider({ children }) {
         }));
         setActiveScreen('CATALOG');
       }
-    });
 
-    // 2. Direct OAuth URL Hash listener fallback (#access_token=...)
-    if (window.location.hash.includes('access_token=')) {
-      const hashStr = window.location.hash.startsWith('#') ? window.location.hash.substring(1) : window.location.hash;
-      const params = new URLSearchParams(hashStr);
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-
-      if (accessToken) {
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || ''
-        }).then(({ data, error }) => {
-          if (data?.session?.user) {
-            const meta = data.session.user.user_metadata || {};
-            const fullName = meta.full_name || meta.name || data.session.user.email?.split('@')[0] || 'Fabrizio Goscè';
-            const avatarUrl = meta.avatar_url || meta.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
-
-            setUser(prev => ({
-              ...prev,
-              name: fullName,
-              email: data.session.user.email,
-              avatar: avatarUrl,
-              hasCompletedCalibration: true
-            }));
-            setActiveScreen('CATALOG');
-            window.history.replaceState(null, '', window.location.pathname);
-          }
-        }).catch(err => console.warn('Supabase setSession notice:', err));
+      // Safely clean URL hash fragment after OAuth redirect
+      if (window.location.hash && (window.location.hash.includes('access_token=') || window.location.hash.includes('error='))) {
+        try {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        } catch (e) {}
       }
-    }
+    });
 
     return () => {
       authListener?.subscription?.unsubscribe();
@@ -260,18 +261,18 @@ export function GameProvider({ children }) {
     }
   };
 
-  // Helper formula calcolo punteggio globale
+  // Helper formula calcolo punteggio globale (punteggio moderato e progressione graduale)
   const computeScoreDetails = (currentStats, maxStreakCount, mode) => {
     const correctCount = currentStats.correct;
-    const basePoints = correctCount * 1000;
+    const basePoints = correctCount * 100; // 100 pt per risposta corretta
     const avgCorrectTimeSec = correctCount > 0 
       ? Number((currentStats.correctTimeMs / 1000 / correctCount).toFixed(1))
       : 10.0;
     const rawMultiplier = 1.0 + Math.max(0, (10.0 - avgCorrectTimeSec) / 10.0) * 0.8;
     const speedMultiplier = Number(rawMultiplier.toFixed(2));
     const speedBonusPoints = Math.round(basePoints * (speedMultiplier - 1.0));
-    const streakBonusPoints = maxStreakCount * 100;
-    const dailyBonus = (mode === 'DAILY' && correctCount >= 10) ? 5000 : 0;
+    const streakBonusPoints = maxStreakCount * 20;
+    const dailyBonus = (mode === 'DAILY' && correctCount >= 10) ? 500 : 0;
     const finalTotalScore = basePoints + speedBonusPoints + streakBonusPoints + dailyBonus;
 
     return {
@@ -718,6 +719,8 @@ export function GameProvider({ children }) {
   // --- QUIT GAME IN PROGRESS ---
   const quitGame = () => {
     stopAudio();
+    // [FIX BUG3] Clear AudioBuffer cache on quit to prevent memory leak
+    audioBufferMapRef.current.clear();
     setRoundStatus('IDLE');
     setActiveScreen('CATALOG');
   };
@@ -919,19 +922,21 @@ export function GameProvider({ children }) {
     scheduleNextRound(150);
   };
 
-  // --- TIMEOUT HANDLER ---
+  // --- TIMEOUT HANDLER (uses functional setState to avoid stale closure) ---
   const handleTimeout = () => {
     stopAudio();
     setStreak(0);
-    const newStats = {
-      ...stats,
-      wrong: stats.wrong + 1,
-      totalTimeMs: stats.totalTimeMs + 10000,
-    };
-    setStats(newStats);
-    const details = computeScoreDetails(newStats, maxStreak, gameMode);
-    setScoreDetails(details);
-    setRoundScore(details.finalTotalScore);
+    setStats(prev => {
+      const newStats = {
+        ...prev,
+        wrong: prev.wrong + 1,
+        totalTimeMs: prev.totalTimeMs + 10000,
+      };
+      const details = computeScoreDetails(newStats, maxStreak, gameMode);
+      setScoreDetails(details);
+      setRoundScore(details.finalTotalScore);
+      return newStats;
+    });
 
     setAnswerFeedback('TIMEOUT');
     playSoundEffect('wrong');
@@ -1054,10 +1059,13 @@ export function GameProvider({ children }) {
 
     if (isOfflineMode) {
       saveOfflineScore({
-        playlistId: currentPlaylist?.id || 'unknown',
+        playlistId: currentPlaylist?.id,
         score: finalGameScore,
-        mode: gameMode
+        correct: stats.correct,
       });
+    } else {
+      // Sync score to Supabase Leaderboard
+      saveScoreToSupabase(updatedUser);
     }
   };
 
@@ -1072,7 +1080,7 @@ export function GameProvider({ children }) {
       rank: 'Suonatore di Citofono',
       friends: ['Marco_90', 'Elena_Rock', 'Giuseppe_Bass'],
       downloadedPlaylists: [],
-      noteStreak: 1,
+      noteStreak: 0,
       lastDailyDate: null,
       dailyCompletedToday: false,
       streakBadges: [],

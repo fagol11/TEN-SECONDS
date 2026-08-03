@@ -53,17 +53,19 @@
       // Lucide Zap coordinates scaled to size
       // Path points in 24x24 unit grid:
       // (13, 2) -> (3, 14) -> (12, 14) -> (11, 22) -> (21, 10) -> (12, 10)
-      const scale = size / 24;
-      const offsetX = 0;
-      const offsetY = 0;
+      // Lucide Zap coordinates scaled to 58% for Android adaptive safe zone
+      const boltSize = size * 0.58;
+      const scale = boltSize / 24;
+      const offsetX = (size - boltSize) / 2;
+      const offsetY = (size - boltSize) / 2;
 
       ctx.beginPath();
-      ctx.moveTo(13 * scale, 2 * scale);
-      ctx.lineTo(3 * scale, 14 * scale);
-      ctx.lineTo(12 * scale, 14 * scale);
-      ctx.lineTo(11 * scale, 22 * scale);
-      ctx.lineTo(21 * scale, 10 * scale);
-      ctx.lineTo(12 * scale, 10 * scale);
+      ctx.moveTo(offsetX + 13 * scale, offsetY + 2 * scale);
+      ctx.lineTo(offsetX + 3 * scale, offsetY + 14 * scale);
+      ctx.lineTo(offsetX + 12 * scale, offsetY + 14 * scale);
+      ctx.lineTo(offsetX + 11 * scale, offsetY + 22 * scale);
+      ctx.lineTo(offsetX + 21 * scale, offsetY + 10 * scale);
+      ctx.lineTo(offsetX + 12 * scale, offsetY + 10 * scale);
       ctx.closePath();
 
       ctx.fill();

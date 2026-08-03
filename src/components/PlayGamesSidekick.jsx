@@ -4,7 +4,7 @@ import { PLAY_GAMES_ACHIEVEMENTS, checkPlayGamesAchievements } from '../services
 import { Gamepad2, Trophy, Star, ShieldCheck, X, CheckCircle2, ChevronRight, Award, Zap } from 'lucide-react';
 
 export default function PlayGamesSidekick() {
-  const { user, setActiveScreen } = useGame();
+  const { user, activeScreen, setActiveScreen } = useGame();
   const [showWelcomeToast, setShowWelcomeToast] = useState(true);
   const [isSidekickOpen, setIsSidekickOpen] = useState(false);
   const [achievementsState, setAchievementsState] = useState({ unlockedCount: 0, totalCount: 5, totalXp: 0, unlockedList: [] });
@@ -24,7 +24,7 @@ export default function PlayGamesSidekick() {
   return (
     <>
       {/* 1. Official Google Play Games Welcome Banner Toast */}
-      {showWelcomeToast && (
+      {showWelcomeToast && activeScreen !== 'GAME' && (
         <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 animate-bounce cursor-pointer max-w-sm w-[92%]" onClick={() => setIsSidekickOpen(true)}>
           <div className="bg-slate-900/95 border border-emerald-500/40 rounded-2xl p-3 shadow-2xl backdrop-blur-md flex items-center justify-between gap-3 text-left">
             <div className="flex items-center gap-3">
@@ -49,8 +49,8 @@ export default function PlayGamesSidekick() {
         </div>
       )}
 
-      {/* 2. Floating Play Games Sidekick Trigger Button */}
-      {!isSidekickOpen && (
+      {/* 2. Floating Play Games Sidekick Trigger Button (Hidden during active GAME screen) */}
+      {!isSidekickOpen && activeScreen !== 'GAME' && (
         <button
           onClick={() => setIsSidekickOpen(true)}
           title="Apri Google Play Games Sidekick & Obiettivi"

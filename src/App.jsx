@@ -16,17 +16,32 @@ import StreakPopup from './components/StreakPopup';
 import PlayGamesSidekick from './components/PlayGamesSidekick';
 
 function MainContent() {
-  const { activeScreen, isLivesModalOpen, setIsLivesModalOpen, isConfettiActive, comboEvent } = useGame();
+  const { activeScreen, isLivesModalOpen, setIsLivesModalOpen, isConfettiActive, comboEvent, user } = useGame();
+
+  const renderActiveScreen = () => {
+    switch (activeScreen) {
+      case 'ONBOARDING':
+        return <OnboardingScreen />;
+      case 'CALIBRATION':
+        return <CalibrationScreen />;
+      case 'GAME':
+        return <GameScreen />;
+      case 'CATALOG':
+        return <CatalogScreen />;
+      case 'CHALLENGE':
+        return <ChallengeScreen />;
+      case 'LEADERBOARD':
+        return <LeaderboardScreen />;
+      case 'OFFLINE':
+        return <OfflineScreen />;
+      default:
+        return user?.hasCompletedCalibration ? <CatalogScreen /> : <OnboardingScreen />;
+    }
+  };
 
   return (
     <main className={activeScreen === 'GAME' ? 'flex-1 flex flex-col justify-between overflow-hidden pb-1' : 'pb-12'}>
-      {activeScreen === 'ONBOARDING' && <OnboardingScreen />}
-      {activeScreen === 'CALIBRATION' && <CalibrationScreen />}
-      {activeScreen === 'GAME' && <GameScreen />}
-      {activeScreen === 'CATALOG' && <CatalogScreen />}
-      {activeScreen === 'CHALLENGE' && <ChallengeScreen />}
-      {activeScreen === 'LEADERBOARD' && <LeaderboardScreen />}
-      {activeScreen === 'OFFLINE' && <OfflineScreen />}
+      {renderActiveScreen()}
 
       <StreakPopup comboEvent={comboEvent} />
       <ConfettiBurst active={isConfettiActive} />

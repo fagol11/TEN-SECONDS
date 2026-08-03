@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame, getUserRankAndClasse } from '../context/GameContext';
+import { getLeaderboardFromSupabase } from '../services/supabaseClient';
 import { Trophy, Users, Globe, Star, Music2, Award, Heart, Share2, Copy, Check, Swords, Crown, Gamepad2, CheckCircle2, UserPlus } from 'lucide-react';
 
 const MOCK_LEADERBOARD = [
@@ -15,9 +16,33 @@ export default function LeaderboardScreen() {
   const [tab, setTab] = useState('global'); // 'global' | 'friends' | 'trophies'
   const [copiedInvite, setCopiedInvite] = useState(false);
   const [invitedNotice, setInvitedNotice] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState(MOCK_LEADERBOARD);
+
+  useEffect(() => {
+    getLeaderboardFromSupabase().then(realData => {
+      if (realData && realData.length > 0) {
+        const formatted = realData.map((item, idx) => ({
+          rank: idx + 1,
+          name: item.user_name || 'Giocatore Anonymous',
+          avatar: item.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+          score: item.total_score || 0,
+          avgTime: '1.8s',
+          isFriend: user.friends?.includes(item.user_name),
+          title: getUserRankAndClasse(item.total_score || 0).name,
+          classe: getUserRankAndClasse(item.total_score || 0).classe,
+          tournamentsWon: item.tournaments_won || 0,
+          challengesWon: item.challenges_won || 0,
+        }));
+        setLeaderboardData(formatted);
+      }
+    }).catch(() => {});
+  }, [user.friends]);
 
   const userRankInfo = getUserRankAndClasse(user.totalScore);
   const inviteLink = `${window.location.origin}?ref=${encodeURIComponent(user.name)}`;
+
+  // Compute user rank dynamically vs active leaderboard
+  const userRankPosition = leaderboardData.filter(p => p.score > user.totalScore).length + 1;
 
   const handleCopyInvite = () => {
     navigator.clipboard.writeText(inviteLink);
@@ -33,8 +58,8 @@ export default function LeaderboardScreen() {
   };
 
   const displayList = tab === 'friends' 
-    ? MOCK_LEADERBOARD.filter(item => item.isFriend)
-    : MOCK_LEADERBOARD;
+    ? leaderboardData.filter(item => item.isFriend)
+    : leaderboardData;
 
   return (
     <div className="max-w-2xl mx-auto p-4 space-y-6">
@@ -102,13 +127,13 @@ export default function LeaderboardScreen() {
                 {user.tournamentsWon || 0}
               </span>
               {/* Challenges Won Tag */}
-              <span className="h-5 px-2 py-0.5 rounded text-[10px] text-purple-300 bg-purple-500/10 border border-purple-500/30 font-bold flex items-center justify-center gap-1" title="Sfide 1v1 Vinte">
+              <span className="h-5 px-2 py-0.5 rounded text-[10px] text-purple-300 bg-purple-500/10 border border-purple-500/30 font-bold flex items-center justify-center gap-1" title="Sfide 1vs1 Vinte">
                 <Swords className="w-3 h-3 text-purple-400" />
                 {user.challengesWon || 0}
               </span>
             </div>
             <div className="text-xs text-slate-400 mt-1 flex items-center gap-2">
-              <span>Posizione: <span className="text-white font-bold font-mono">#14</span></span>
+              <span>Posizione: <span className="text-white font-bold font-mono">#{userRankPosition}</span></span>
               <span>•</span>
               <span className="text-cyan-400 font-mono font-bold flex items-center gap-1.5">
                 <Music2 className="w-3.5 h-3.5 fill-current" />
@@ -218,7 +243,7 @@ export default function LeaderboardScreen() {
                         </span>
                       )}
                       {item.challengesWon > 0 && (
-                        <span className="h-5 px-2 py-0.5 rounded text-[10px] text-purple-300 bg-purple-500/10 border border-purple-500/30 font-bold flex items-center justify-center gap-1" title="Sfide 1v1 Vinte">
+                        <span className="h-5 px-2 py-0.5 rounded text-[10px] text-purple-300 bg-purple-500/10 border border-purple-500/30 font-bold flex items-center justify-center gap-1" title="Sfide 1vs1 Vinte">
                           <Swords className="w-3 h-3 text-purple-400" /> {item.challengesWon}
                         </span>
                       )}

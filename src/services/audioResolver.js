@@ -18,6 +18,19 @@ const _audioPreloadCache = new Map();
 const _blobUrlCache = new Map();
 
 /**
+ * Safe timeout signal helper — falls back to AbortController for older WebViews
+ * that don't support AbortSignal.timeout().
+ */
+function safeTimeout(ms) {
+  if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) {
+    return AbortSignal.timeout(ms);
+  }
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), ms);
+  return ctrl.signal;
+}
+
+/**
  * Preloads an audio file in memory as a Blob URL for instant 0ms playback start.
  */
 export async function preloadAudio(url) {
@@ -81,7 +94,7 @@ export function calculateSimilarity(str1, str2) {
 async function _queryItunes(query, artist, title, country) {
   try {
     const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=8&country=${country}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(7000) });
+    const res = await fetch(url, { signal: safeTimeout(7000) });
     if (!res.ok) return null;
     const data = await res.json();
     if (!data?.results?.length) return null;
@@ -131,7 +144,7 @@ export async function resolveAudioPreview(artist, title) {
   try {
     const deezerApiUrl = `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=10`;
     const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(deezerApiUrl)}`;
-    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(proxyUrl, { signal: safeTimeout(5000) });
     if (res.ok) {
       const data = await res.json();
       if (data?.data?.length > 0) {

@@ -10,52 +10,53 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
-// --- GOOGLE OAUTH LOGIN ---
+export async function signInWithGoogleIdToken(idToken) {
+  try {
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: idToken,
+    });
+    if (error) {
+      console.warn('[Supabase Auth] ID Token Auth error:', error.message);
+      return { error: error.message };
+    }
+    return { data };
+  } catch (err) {
+    console.warn('[Supabase Auth] Exception during ID Token Auth:', err?.message || err);
+    return { error: err?.message || 'ID token auth error' };
+  }
+}
+
+// --- GOOGLE OAUTH LOGIN (WEB REDIRECT FALLBACK) ---
 export async function signInWithGoogle() {
   try {
-    // Check if session already exists
     const { data: sessionData } = await supabase.auth.getSession();
     if (sessionData?.session?.user) {
       return { user: sessionData.session.user };
     }
 
-    const currentRedirect = window.location.href.split('#')[0];
+    const redirectUri = window.location.origin;
 
-    // Try OAuth sign in with inspect mode
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: currentRedirect,
-        skipBrowserRedirect: true // Inspect URL first to avoid raw JSON error page
+        redirectTo: redirectUri,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'select_account',
+        },
       }
     });
 
     if (error) {
-      console.warn('Supabase Google Auth notice:', error.message);
+      console.warn('[Supabase Auth] Google OAuth error:', error.message);
       return { error: error.message };
     }
 
-    if (data?.url) {
-      // Pre-check if provider endpoint is enabled in Supabase Dashboard
-      try {
-        const checkRes = await fetch(data.url);
-        const bodyText = await checkRes.text();
-        if (bodyText.includes('provider is not enabled') || checkRes.status === 400) {
-          console.warn('[Supabase Auth] Google provider is not enabled in dashboard');
-          return { error: 'provider is not enabled' };
-        }
-      } catch (fetchErr) {
-        console.warn('[Supabase Auth] Fetch check warning:', fetchErr);
-      }
-
-      // If valid, redirect browser to Google OAuth
-      window.location.href = data.url;
-      return { data };
-    }
-    return { error: 'No OAuth URL returned' };
+    return { data };
   } catch (err) {
-    console.warn('Supabase Google Auth warning:', err.message);
-    return { error: err.message };
+    console.warn('[Supabase Auth] Exception during Google Auth:', err?.message || err);
+    return { error: err?.message || 'OAuth error' };
   }
 }
 
@@ -68,13 +69,49 @@ export async function signOutSupabase() {
   }
 }
 
+// --- SAVE / UPSERT SCORE TO SUPABASE LEADERBOARD ---
+export async function saveScoreToSupabase(user) {
+  if (!user || !user.name) return null;
+  try {
+    const userId = user.email || user.id || `user_${user.name.toLowerCase().replace(/\s+/g, '_')}`;
+    const payload = {
+      user_id: userId,
+      user_email: user.email || null,
+      user_name: user.name,
+      avatar_url: user.avatar || null,
+      flag: user.flag || '🇮🇹',
+      nationality: user.nationality || 'Italia',
+      total_score: user.totalScore || 0,
+      total_games_played: user.totalGamesPlayed || 0,
+      perfect_games_count: user.perfectGamesCount || 0,
+      challenges_won: user.challengesWon || 0,
+      tournaments_won: user.tournamentsWon || 0,
+      note_streak: user.noteStreak || 0,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from('leaderboard')
+      .upsert(payload, { onConflict: 'user_id' });
+
+    if (error) {
+      console.warn('[Supabase Leaderboard] Upsert warning:', error.message);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.warn('[Supabase Leaderboard] Save error:', err?.message);
+    return null;
+  }
+}
+
 // --- FETCH REALTIME GLOBAL LEADERBOARD ---
 export async function getLeaderboardFromSupabase() {
   try {
     const { data, error } = await supabase
       .from('leaderboard')
       .select('*')
-      .order('score', { ascending: false })
+      .order('total_score', { ascending: false })
       .limit(20);
 
     if (error || !data) return null;
