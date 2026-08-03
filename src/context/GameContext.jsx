@@ -873,21 +873,34 @@ export function GameProvider({ children }) {
       setAnswerFeedback('CORRECT');
       playSoundEffect('correct');
 
-      let titleText = 'NICE!';
-      if (newStreak === 1) {
-        const praiseList = ['NICE! 🎵', 'GREAT! ⚡', 'GOOD! 🌟', 'EXCELLENT! 🎯'];
-        titleText = praiseList[Math.floor(Math.random() * praiseList.length)];
-      } else if (newStreak >= 2 && newStreak < 10) {
-        titleText = `${newStreak} IN A ROW! 🔥`;
+      // Calculate dynamic points for this track based on reaction speed & streak
+      const timeRemaining = Math.max(0, remainingTime);
+      const speedPoints = Math.round(timeRemaining * 100); // 0 to 1000 points
+      const streakBonus = (newStreak - 1) * 150;
+      const pointsEarned = Math.max(100, speedPoints + streakBonus);
+
+      let titleText = 'PERFETTO! 🎵';
+      if (timeRemaining >= 8.5) {
+        titleText = '⚡ REAZIONE FULMINEA!';
+      } else if (timeRemaining >= 6.5) {
+        titleText = '🔥 SUPER REATTIVO!';
       } else if (newStreak >= 10) {
-        titleText = `10 IN A ROW! PERFECT 🏆`;
+        titleText = '🏆 10 DI FILA! IMPECCABILE';
+      } else if (newStreak >= 5) {
+        titleText = `🔥 ${newStreak} DI FILA! IMBATTIBILE`;
+      } else if (newStreak >= 2) {
+        titleText = `✨ ${newStreak} IN FILA! OTTIMO`;
+      } else {
+        const praiseList = ['ESATTO! 🎯', 'BRAVO! ⚡', 'OTTIMO! 🌟', 'COLPITO! 🎵'];
+        titleText = praiseList[Math.floor(Math.random() * praiseList.length)];
       }
 
       setComboEvent({
         id: Date.now(),
         streak: newStreak,
         title: titleText,
-        points: 1000
+        points: pointsEarned,
+        timeRemaining: timeRemaining.toFixed(1)
       });
 
       triggerConfetti();
