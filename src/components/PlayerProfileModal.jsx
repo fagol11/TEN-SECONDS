@@ -133,10 +133,6 @@ export default function PlayerProfileModal({ player, isOpen, onClose }) {
               <span className="flex items-center gap-1 font-semibold">
                 <Globe className="w-3.5 h-3.5 text-cyan-400" /> {player.nationality || 'Italia'}
               </span>
-              <span>•</span>
-              <span className="flex items-center gap-1 font-semibold text-slate-400">
-                <Calendar className="w-3.5 h-3.5 text-amber-400" /> {player.age || 25} anni
-              </span>
             </div>
 
             <div className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[11px] font-mono font-bold">
