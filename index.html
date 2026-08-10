@@ -2,13 +2,15 @@
 <html lang="it" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>TEN-SECONDS</title>
-    <meta name="application-name" content="TEN-SECONDS" />
-    <meta property="og:site_name" content="TEN-SECONDS" />
-    <meta property="og:title" content="TEN-SECONDS" />
-    <meta name="description" content="TEN-SECONDS è l'applicazione quiz musicale veloce in cui hai 10 secondi di tempo per ascoltare un estratto audio e indovinare il titolo della canzone. Sfida i tuoi amici, scala la classifica e sblocca trofei." />
+    <title>TEN SECONDS</title>
+    <meta name="application-name" content="TEN SECONDS" />
+    <meta property="og:site_name" content="TEN SECONDS" />
+    <meta property="og:title" content="TEN SECONDS" />
+    <meta name="description" content="TEN SECONDS è un'applicazione quiz musicale arcade. Scopri lo scopo dell'applicazione, gioca in sessioni da 10 secondi e accedi in sicurezza con Google OAuth per salvare i tuoi progressi nella classifica globale." />
+    <!-- Google AdSense Script Tag -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1867031805275219" crossorigin="anonymous"></script>
     <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,41 +19,22 @@
   <body class="bg-[#09090c] text-slate-100 font-sans antialiased select-none overflow-x-hidden">
     <div id="root"></div>
 
-    <!-- SEO & Web Crawler Fallback (Hidden from UI render, visible to Google Scraper) -->
-    <div style="display: none !important;" aria-hidden="true">
-      <main>
-        <header>
-          <h1>TEN-SECONDS</h1>
-          <p>The Ultimate Music Quiz & Challenge Platform</p>
-        </header>
-
-        <section>
-          <h2>Cos'è e qual è lo scopo di TEN-SECONDS?</h2>
-          <p>
-            <strong>TEN-SECONDS</strong> è un'applicazione ludica e interattiva dedicata al mondo della musica. Lo scopo dell'applicazione è mettere alla prova l'orecchio musicale e i riflessi degli utenti: in ciascuna manche hai esattamente <strong>10 secondi di tempo</strong> per ascoltare un estratto sonoro e indovinare il titolo della canzone o l'artista corretto prima che il tempo scada.
-          </p>
-          <p>
-            Più veloce sarà la tua risposta, maggior punteggio guadagnerai! I dati di autenticazione dell'account Google (Nome e Indirizzo Email) vengono utilizzati esclusivamente per la creazione del profilo di gioco, il salvataggio dei progressi personale e l'aggiornamento della classifica globale dei punteggi.
-          </p>
-        </section>
-
-        <section>
-          <h2>Funzionalità Principali</h2>
-          <ul>
-            <li><strong>Sfide Velocissime:</strong> 10 secondi per ciascun brano con estratti audio ad alta qualità.</li>
-            <li><strong>Sfide Dirette 1vs1:</strong> Crea codici sfida personalizzati per sfidare i tuoi amici in tempo reale.</li>
-            <li><strong>Classifica Globale:</strong> Sincronizza il tuo profilo Google e scala la classifica dei migliori giocatori.</li>
-            <li><strong>Modalità Offline:</strong> Gioca anche senza connessione internet con oltre 15 pacchetti scaricabili.</li>
-          </ul>
-        </section>
-
-        <footer>
-          <p>Documentazione Legale e Norme:</p>
-          <a href="privacy.html">Norme sulla Privacy (Privacy Policy)</a>
-          <a href="terms.html">Termini di Servizio (Terms of Service)</a>
-        </footer>
-      </main>
-    </div>
+    <!-- Semantic App Purpose & OAuth Disclosure Section for Google OAuth Verification Reviewers -->
+    <noscript>
+      <div style="padding: 20px; max-width: 800px; margin: 0 auto; color: #fff;">
+        <h1>TEN SECONDS</h1>
+        <h2>Scopo dell'Applicazione & Informazioni Google OAuth</h2>
+        <p>
+          <strong>TEN SECONDS</strong> è un'applicazione ludica e quiz musicale arcade. Lo scopo dell'applicazione è mettere alla prova l'orecchio musicale e i riflessi degli utenti: in ciascuna manche hai esattamente 10 secondi di tempo per ascoltare un estratto sonoro e indovinare il titolo della canzone o l'artista corretto.
+        </p>
+        <p>
+          <strong>Uso dei Dati Google OAuth:</strong> L'autenticazione tramite Google OAuth (email e dati di profilo) viene utilizzata esclusivamente per identificare il giocatore, salvare i progressi di gioco e pubblicare il punteggio nella classifica globale dei giocatori.
+        </p>
+        <p>
+          <a href="privacy.html">Norme sulla Privacy</a> | <a href="terms.html">Termini di Servizio</a>
+        </p>
+      </div>
+    </noscript>
 
     <script type="module" src="/src/main.jsx"></script>
   </body>

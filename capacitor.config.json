@@ -1,7 +1,7 @@
 {
   "appId": "com.tenseconds.app",
   "appName": "Ten Seconds",
-  "webDir": "dist",
+  "webDir": "mobile/dist",
   "server": {
     "androidScheme": "https"
   },
@@ -13,6 +13,12 @@
       "overlaysWebView": true,
       "style": "DARK",
       "visible": false
+    },
+    "GoogleAuth": {
+      "scopes": ["profile", "email"],
+      "serverClientId": "217514904934-ehk4cpst4votpe25ntjdp6k4fr80j4o3.apps.googleusercontent.com",
+      "forceCodeForRefreshToken": true
     }
   }
 }
+

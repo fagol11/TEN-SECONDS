@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "217514904934",
+    "project_id": "tenseconds-app",
+    "storage_bucket": "tenseconds-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:217514904934:android:c12c2fb062555dc6cc4ca7",
+        "android_client_info": {
+          "package_name": "com.tenseconds.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxBu7kY5d1kpE7ymv-uKqZ5wOJktm7G_I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

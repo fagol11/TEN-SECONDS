@@ -4,14 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "npm run dev:mobile",
+    "dev:web": "npm --prefix web run dev",
+    "dev:mobile": "npm --prefix mobile run dev",
+    "build": "npm --prefix web run build && npm --prefix mobile run build && npx cap copy android",
+    "build:web": "npm --prefix web run build",
+    "build:mobile": "npm --prefix mobile run build && npx cap copy android",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.0.0",
     "@capacitor/core": "^8.4.2",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@supabase/supabase-js": "^2.110.8",
     "canvas-confetti": "^1.9.4",
     "idb-keyval": "^6.3.0",

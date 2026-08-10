@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Icon Generator</title>
+</head>
+<body style="background: #111; color: #fff; font-family: sans-serif; padding: 20px;">
+  <h2>Generating App Icon PNGs...</h2>
+  <div id="status">Generating...</div>
+
+  <div id="canvasContainer"></div>
+
+  <script>
+    const SIZES = {
+      'mdpi': 48,
+      'hdpi': 72,
+      'xhdpi': 96,
+      'xxhdpi': 144,
+      'xxxhdpi': 192,
+      'store': 512,
+      '1024': 1024
+    };
+
+    window.generatedIcons = {};
+
+    function generateAllIcons() {
+      const container = document.getElementById('canvasContainer');
+
+      Object.entries(SIZES).forEach(([density, size]) => {
+        // 1. Main Icon
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        const grad = ctx.createLinearGradient(0, size, size, 0);
+        grad.addColorStop(0, '#10b981'); // Emerald
+        grad.addColorStop(0.5, '#14b8a6'); // Teal
+        grad.addColorStop(1, '#06b6d4'); // Cyan
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, size, size);
+
+        drawLightningBolt(ctx, size, '#09090d');
+        container.appendChild(canvas);
+
+        // 2. Foreground (for adaptive icon)
+        const fgCanvas = document.createElement('canvas');
+        fgCanvas.width = size;
+        fgCanvas.height = size;
+        const fgCtx = fgCanvas.getContext('2d');
+        fgCtx.clearRect(0, 0, size, size);
+        drawLightningBolt(fgCtx, size, '#09090d');
+
+        // Save
+        window.generatedIcons[density] = {
+          icon: canvas.toDataURL('image/png'),
+          foreground: fgCanvas.toDataURL('image/png')
+        };
+      });
+
+      document.getElementById('status').innerText = 'DONE_GENERATING';
+    }
+
+    function drawLightningBolt(ctx, size, color) {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = size * 0.055;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+
+      const scale = size / 24;
+
+      ctx.beginPath();
+      ctx.moveTo(13 * scale, 2 * scale);
+      ctx.lineTo(3 * scale, 14 * scale);
+      ctx.lineTo(12 * scale, 14 * scale);
+      ctx.lineTo(11 * scale, 22 * scale);
+      ctx.lineTo(21 * scale, 10 * scale);
+      ctx.lineTo(12 * scale, 10 * scale);
+      ctx.closePath();
+
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    window.onload = generateAllIcons;
+  </script>
+</body>
+</html>
