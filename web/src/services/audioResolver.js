@@ -79,6 +79,7 @@ export function calculateSimilarity(str1, str2) {
 // ---------------------------------------------------------------------------
 
 const DEEZER_PROXIES = [
+  (target) => target, // Direct fetch (native mobile & non-CORS environments)
   (target) => `https://corsproxy.io/?url=${encodeURIComponent(target)}`,
   (target) => `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`,
   (target) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`,
@@ -90,7 +91,7 @@ async function _queryDeezer(query, artist, title) {
   for (const getProxyUrl of DEEZER_PROXIES) {
     try {
       const proxyUrl = getProxyUrl(targetApi);
-      const res = await fetch(proxyUrl, { signal: safeTimeout(4000) });
+      const res = await fetch(proxyUrl, { signal: safeTimeout(3500) });
       if (!res.ok) continue;
 
       const data = await res.json();
@@ -131,22 +132,33 @@ async function _queryDeezer(query, artist, title) {
   return null;
 }
 
+export function isDeezerUrlExpired(url) {
+  if (!url || typeof url !== 'string') return false;
+  const match = url.match(/hdnea=exp=(\d+)/);
+  if (match && match[1]) {
+    const expSec = parseInt(match[1], 10);
+    const nowSec = Math.floor(Date.now() / 1000);
+    return nowSec > (expSec - 120);
+  }
+  return false;
+}
+
 // ---------------------------------------------------------------------------
-// iTunes Search API Helper
+// iTunes Search API Helper (Apple iTunes supports native CORS Access-Control-Allow-Origin: *)
 // ---------------------------------------------------------------------------
 
-async function _queryItunes(query, artist, title, country) {
+async function _queryItunes(query, artist, title, country = 'IT') {
   const targetApi = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=8&country=${country}`;
 
   const urlsToTry = [
-    targetApi,
+    targetApi, // Native CORS from Apple
     `https://corsproxy.io/?url=${encodeURIComponent(targetApi)}`,
     `https://api.allorigins.win/raw?url=${encodeURIComponent(targetApi)}`
   ];
 
   for (const url of urlsToTry) {
     try {
-      const res = await fetch(url, { signal: safeTimeout(3500) });
+      const res = await fetch(url, { signal: safeTimeout(3000) });
       if (!res.ok) continue;
 
       const data = await res.json();
@@ -196,9 +208,10 @@ export async function resolveAudioPreview(artistOrTrack, titleParam) {
   let title = titleParam;
 
   if (artistOrTrack && typeof artistOrTrack === 'object') {
-    if (artistOrTrack.previewUrl && artistOrTrack.previewUrl.startsWith('http')) {
+    const rawUrl = artistOrTrack.previewUrl;
+    if (rawUrl && rawUrl.startsWith('http') && !isDeezerUrlExpired(rawUrl)) {
       return {
-        previewUrl: artistOrTrack.previewUrl,
+        previewUrl: rawUrl,
         artworkUrl: artistOrTrack.artworkUrl || null,
         trackName: artistOrTrack.title,
         artistName: artistOrTrack.artist,
@@ -212,19 +225,32 @@ export async function resolveAudioPreview(artistOrTrack, titleParam) {
   if (!artist && !title) return null;
 
   const cacheKey = `${normalizeString(artist)}::${normalizeString(title)}`;
-  if (_cache.has(cacheKey)) return _cache.get(cacheKey);
+  if (_cache.has(cacheKey)) {
+    const cached = _cache.get(cacheKey);
+    if (cached?.previewUrl && !isDeezerUrlExpired(cached.previewUrl)) {
+      return cached;
+    }
+  }
 
   const cleanTitle = title.replace(/[\(\[\{].*?[\)\]\}]/g, '').trim();
   const cleanArtist = artist.replace(/\b(feat|ft|featuring)\b.*?$/i, '').replace(/&.*$/, '').trim();
 
-  // Tier 1: Query with full Artist + Title on Deezer
-  let result = await _queryDeezer(`${artist} ${title}`.trim(), artist, title);
+  // Tier 1: Query on iTunes IT (Permanent ultra-fast Apple CDN preview without expiration)
+  let result = await _queryItunes(`${artist} ${cleanTitle}`.trim(), artist, title, 'IT');
+  if (result) { _cache.set(cacheKey, result); return result; }
+
+  // Tier 2: Query on iTunes US
+  result = await _queryItunes(`${artist} ${cleanTitle}`.trim(), artist, title, 'US');
+  if (result) { _cache.set(cacheKey, result); return result; }
+
+  // Tier 3: Query with full Artist + Title on Deezer
+  result = await _queryDeezer(`${artist} ${title}`.trim(), artist, title);
   if (result) {
     _cache.set(cacheKey, result);
     return result;
   }
 
-  // Tier 2: Query with Cleaned Artist + Title on Deezer
+  // Tier 4: Query with Cleaned Artist + Title on Deezer
   if (cleanTitle !== title || cleanArtist !== artist) {
     result = await _queryDeezer(`${cleanArtist} ${cleanTitle}`.trim(), artist, title);
     if (result) {
@@ -233,29 +259,13 @@ export async function resolveAudioPreview(artistOrTrack, titleParam) {
     }
   }
 
-  // Tier 3: Query on iTunes IT & US
-  result = await _queryItunes(`${artist} ${cleanTitle}`.trim(), artist, title, 'IT');
-  if (result) { _cache.set(cacheKey, result); return result; }
-
-  result = await _queryItunes(`${artist} ${cleanTitle}`.trim(), artist, title, 'US');
-  if (result) { _cache.set(cacheKey, result); return result; }
-
-  // Tier 4: Query with Title Only on Deezer
-  if (cleanTitle) {
-    result = await _queryDeezer(cleanTitle, artist, title);
-    if (result) {
-      _cache.set(cacheKey, result);
-      return result;
-    }
-  }
-
-  // Tier 5: Query with Title Only on iTunes
+  // Tier 5: Query with Title Only on iTunes & Deezer
   if (cleanTitle) {
     result = await _queryItunes(cleanTitle, artist, title, 'US');
-    if (result) {
-      _cache.set(cacheKey, result);
-      return result;
-    }
+    if (result) { _cache.set(cacheKey, result); return result; }
+
+    result = await _queryDeezer(cleanTitle, artist, title);
+    if (result) { _cache.set(cacheKey, result); return result; }
   }
 
   _cache.set(cacheKey, null);

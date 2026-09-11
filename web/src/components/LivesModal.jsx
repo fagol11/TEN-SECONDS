@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { Heart, Tv, Crown, X, Check } from 'lucide-react';
+import { Heart, Tv, Crown, X, Check, Sparkles } from 'lucide-react';
+
+// Lista ristretta di tester autorizzati per la simulazione PRO durante il closed testing
+const AUTHORIZED_TEST_EMAILS = [
+  'fabrizio.gosce@gmail.com',
+  'fabriziomi9se@gmail.com',
+  'ferruccioparente@gmail.com',
+  'rosa.maritato@gmail.com',
+  'g.gosce@gmail.com',
+  'paolomorelli2008@gmail.com',
+  'candiani.emma@gmail.com'
+];
 
 export default function LivesModal({ isOpen, onClose }) {
   const { user, watchRewardAd, toggleProStatus } = useGame();
@@ -8,12 +19,18 @@ export default function LivesModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
+  const isTestMode = import.meta.env.VITE_TEST_MODE === 'true';
+  const userEmail = (user?.email || '').toLowerCase().trim();
+  // Visibile ESCLUSIVAMENTE se la modalità test è attiva AND l'utente ha effettuato l'accesso con un'email in whitelist
+  const isAuthorizedTester = isTestMode && !!userEmail && AUTHORIZED_TEST_EMAILS.includes(userEmail);
+
   const handleWatchAdClick = async () => {
     await watchRewardAd();
     onClose();
   };
 
-  const handleSubscribePro = () => {
+  // TEMPORANEO — rimuovere o disabilitare prima della release pubblica, sostituire con vera integrazione Google Play Billing
+  const handleToggleProTest = () => {
     toggleProStatus();
     onClose();
   };
@@ -42,7 +59,7 @@ export default function LivesModal({ isOpen, onClose }) {
           </h3>
           <p className="text-xs text-slate-400 mt-1">
             {user.isPro
-              ? 'Stai usufruendo di Vite Illimitate ❤️♾️ e Zero Pubblicità.'
+              ? 'Stai usufruendo di Vite Illimitate ❤️♾️, Zero Pubblicità e Playlist in Omaggio.'
               : 'Sblocca le vite necessarie per continuare la partita o passa a PRO:'}
           </p>
         </div>
@@ -89,6 +106,10 @@ export default function LivesModal({ isOpen, onClose }) {
               </div>
 
               <ul className="text-xs text-slate-300 space-y-1.5 pt-1">
+                <li className="flex items-center gap-2 text-amber-300 font-bold bg-amber-400/10 p-2 rounded-xl border border-amber-400/25">
+                  <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span><strong>2 Playlist in OMAGGIO</strong>: <em>"Anime OST & Sigle Cult"</em> + <em>"Rock Classics & Hard Rock"</em> sbloccate subito! 🎁</span>
+                </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span><strong>Vite ed Energia Illimitate</strong> ❤️♾️ (giochi all'infinito)</span>
@@ -139,24 +160,32 @@ export default function LivesModal({ isOpen, onClose }) {
 
               </div>
 
-              {/* Subscribe CTA Button */}
-              <button
-                onClick={handleSubscribePro}
-                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:brightness-110 text-slate-950 font-black font-display text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 active:scale-[0.98] transition-all cursor-pointer"
-              >
-                <Crown className="w-4 h-4 fill-current" />
-                ATTIVA ABBONAMENTO {selectedPlan === 'yearly' ? 'ANNUALE (29,90€)' : 'MENSILE (2,90€)'}
-              </button>
+              {/* Subscribe CTA Button / Test Mode Simulation */}
+              {isAuthorizedTester ? (
+                /* TEMPORANEO — rimuovere o disabilitare prima della release pubblica, sostituire con vera integrazione Google Play Billing */
+                <button
+                  onClick={handleToggleProTest}
+                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 hover:brightness-110 text-slate-950 font-black font-display text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  <Crown className="w-4 h-4 fill-current" />
+                  🧪 MODALITÀ TEST — PRO simulato ({selectedPlan === 'yearly' ? 'Attiva Annuale' : 'Attiva Mensile'})
+                </button>
+              ) : (
+                <div className="w-full py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-medium text-xs flex items-center justify-center gap-2">
+                  <span>🔒 Acquisto In-App via Google Play in arrivo con il lancio pubblico</span>
+                </div>
+              )}
             </div>
           </>
         )}
 
-        {user.isPro && (
+        {/* TEMPORANEO — rimuovere o disabilitare prima della release pubblica, sostituire con vera integrazione Google Play Billing */}
+        {user.isPro && isAuthorizedTester && (
           <button
-            onClick={toggleProStatus}
-            className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 font-bold text-xs border border-white/10 transition-all cursor-pointer"
+            onClick={handleToggleProTest}
+            className="w-full py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold text-xs border border-amber-500/30 transition-all cursor-pointer flex items-center justify-center gap-2"
           >
-            Disattiva PRO per testare versione Free (3 Vite)
+            🧪 MODALITÀ TEST — PRO simulato (Disattiva PRO)
           </button>
         )}
 

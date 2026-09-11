@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { SkipForward, Flame, Award, CheckCircle, XCircle, RotateCcw, Home, Sparkles, Volume2, LogOut, AlertTriangle, X, Zap, Disc3, Skull, Trophy } from 'lucide-react';
+import { SkipForward, Flame, Award, CheckCircle, XCircle, RotateCcw, Home, Sparkles, Volume2, LogOut, AlertTriangle, X, Zap, Disc3, Skull, Trophy, Swords, Crown } from 'lucide-react';
 import LiveChallengeHUD from './LiveChallengeHUD';
 
 export default function GameScreen() {
@@ -36,6 +36,25 @@ export default function GameScreen() {
   } = useGame();
 
   const [confirmModal, setConfirmModal] = useState(null); // null | 'RESTART' | 'QUIT'
+
+  // Handle hardware / gesture back button while in game screen
+  useEffect(() => {
+    const handleGameBack = () => {
+      if (roundStatus === 'SUMMARY') {
+        if (gameMode === 'CHALLENGE' || gameMode === 'TOURNAMENT') {
+          setActiveScreen('CHALLENGE');
+        } else {
+          setActiveScreen('CATALOG');
+        }
+      } else {
+        setConfirmModal(prev => (prev ? null : 'QUIT'));
+      }
+    };
+    window.addEventListener('ten_seconds_game_back_press', handleGameBack);
+    return () => {
+      window.removeEventListener('ten_seconds_game_back_press', handleGameBack);
+    };
+  }, [roundStatus, gameMode, setActiveScreen]);
 
   // Ensure audio and timers stop if component unmounts
   useEffect(() => {
@@ -193,7 +212,7 @@ export default function GameScreen() {
                   <span className="text-amber-300 font-bold flex items-center gap-1">
                     <Award className="w-3.5 h-3.5 text-amber-400" /> Bonus 10/10 Sfida Daily
                   </span>
-                  <span className="font-mono font-bold text-amber-400">+5.000 PT</span>
+                  <span className="font-mono font-bold text-amber-400">+1.000 PT</span>
                 </div>
               )}
             </div>
@@ -226,16 +245,41 @@ export default function GameScreen() {
             </button>
           )}
 
-          <button
-            onClick={() => setActiveScreen('CATALOG')}
-            className={`w-full py-4 rounded-xl font-black font-display text-base flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] ${
-              isDeathParade
-                ? 'bg-slate-800 hover:bg-slate-700 text-white border border-white/10'
-                : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/25'
-            }`}
-          >
-            <Home className="w-5 h-5" /> TORNA AI CATALOGHI
-          </button>
+          {gameMode === 'TOURNAMENT' ? (
+            <button
+              onClick={() => {
+                try {
+                  localStorage.setItem('ten_seconds_pending_challenge', JSON.stringify({
+                    screen: 'challenges',
+                    tournamentId: 'tournament_tab',
+                    ts: Date.now()
+                  }));
+                } catch (_) {}
+                setActiveScreen('CHALLENGE');
+              }}
+              className="w-full py-4 rounded-xl font-black font-display text-base flex items-center justify-center gap-2 shadow-xl transition-all active:scale-[0.98] bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-500 hover:brightness-110 text-slate-950 shadow-yellow-500/25 cursor-pointer"
+            >
+              <Crown className="w-5 h-5" /> TORNA AI MIEI TORNEI
+            </button>
+          ) : gameMode === 'CHALLENGE' ? (
+            <button
+              onClick={() => setActiveScreen('CHALLENGE')}
+              className="w-full py-4 rounded-xl font-black font-display text-base flex items-center justify-center gap-2 shadow-xl transition-all active:scale-[0.98] bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:brightness-110 text-slate-950 shadow-amber-500/25 cursor-pointer"
+            >
+              <Swords className="w-5 h-5" /> TORNA ALLE SFIDE
+            </button>
+          ) : (
+            <button
+              onClick={() => setActiveScreen('CATALOG')}
+              className={`w-full py-4 rounded-xl font-black font-display text-base flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] cursor-pointer ${
+                isDeathParade
+                  ? 'bg-slate-800 hover:bg-slate-700 text-white border border-white/10'
+                  : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/25'
+              }`}
+            >
+              <Home className="w-5 h-5" /> TORNA AI CATALOGHI
+            </button>
+          )}
         </div>
       </div>
     );
@@ -327,7 +371,7 @@ export default function GameScreen() {
                 strokeWidth="10"
               />
 
-              {/* FASE 1: DIGGING / BUFFERING (Anello Ciano a rotazione continua concentrico al cerchio principale) */}
+              {/* FASE 1: DIGGING / BUFFERING (quando l'audio sta precaricando) */}
               {isAudioLoading ? (
                 <circle
                   cx="60"
@@ -341,7 +385,7 @@ export default function GameScreen() {
                   style={{ animationDuration: '1.2s' }}
                 />
               ) : prepCountdown > 0 ? (
-                /* FASE 2: CONTO ALLA ROVESCIA FLUIDO 3..2..1 (Anello Amber fluido) */
+                /* FASE 2: CONTO ALLA ROVESCIA FLUIDO 3..2..1 (Anello Amber fluido con massima priorità) */
                 <circle
                   cx="60"
                   cy="60"
@@ -375,10 +419,15 @@ export default function GameScreen() {
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
               {isAudioLoading ? (
                 <div className="flex flex-col items-center justify-center gap-1.5 animate-pulse">
-                  <Disc3 className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400 animate-spin" style={{ animationDuration: '3s' }} />
-                  <span className="text-xs sm:text-sm font-black tracking-widest text-cyan-400 uppercase font-display drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]">
-                    DIGGING...
-                  </span>
+                  <Disc3 className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400 animate-spin" style={{ animationDuration: '2.5s' }} />
+                  <div className="text-xs sm:text-sm font-black tracking-widest text-cyan-400 uppercase font-display drop-shadow-[0_0_10px_rgba(34,211,238,0.6)] flex items-center justify-center">
+                    <span>DIGGING</span>
+                    <span className="inline-flex tracking-tighter w-4 text-left ml-0.5 font-mono">
+                      <span className="animate-pulse">.</span>
+                      <span className="animate-pulse delay-150">.</span>
+                      <span className="animate-pulse delay-300">.</span>
+                    </span>
+                  </div>
                 </div>
               ) : prepCountdown > 0 ? (
                 <div key={prepCountdown} className="flex flex-col items-center justify-center animate-numberPop">
@@ -445,7 +494,7 @@ export default function GameScreen() {
 
             let cardStyle = 'glass-card text-slate-100 hover:border-emerald-500/50';
 
-            if (prepCountdown > 0) {
+            if (isAudioLoading || prepCountdown > 0) {
               cardStyle = 'glass-card text-slate-400 opacity-60 border-white/5 pointer-events-none';
             } else if (isAnswered) {
               if (isCorrectChoice) {
@@ -460,7 +509,7 @@ export default function GameScreen() {
             return (
               <button
                 key={idx}
-                disabled={isAnswered || prepCountdown > 0}
+                disabled={isAnswered || isAudioLoading || prepCountdown > 0}
                 onClick={() => submitAnswer(choice)}
                 className={`w-full py-2.5 px-3.5 sm:py-3.5 sm:px-4 rounded-xl sm:rounded-2xl border text-left flex items-center justify-between transition-all active:scale-[0.98] ${cardStyle}`}
               >
@@ -482,7 +531,7 @@ export default function GameScreen() {
         <div className="flex justify-end pt-1">
           <button
             onClick={skipRound}
-            disabled={isAnswered || prepCountdown > 0}
+            disabled={isAnswered || isAudioLoading || prepCountdown > 0}
             className="text-xs font-black tracking-wider text-slate-950 hover:text-white flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-400 hover:bg-emerald-300 border border-emerald-300 transition-all disabled:opacity-30 shadow-lg shadow-emerald-500/25 active:scale-95"
           >
             <SkipForward className="w-4 h-4 text-slate-950 fill-current" /> SALTA IL BRANO

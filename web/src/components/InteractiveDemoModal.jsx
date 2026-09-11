@@ -442,7 +442,14 @@ export default function InteractiveDemoModal({ isOpen, onClose }) {
                   {isAudioLoading || status === 'DIGGING' ? (
                     <div className="flex flex-col items-center justify-center gap-1 animate-pulse">
                       <Disc3 className="w-8 h-8 text-cyan-400 animate-spin" />
-                      <span className="text-[11px] font-black tracking-widest text-cyan-400 uppercase">DIGGING...</span>
+                      <div className="text-[11px] font-black tracking-widest text-cyan-400 uppercase flex items-center justify-center">
+                        <span>DIGGING</span>
+                        <span className="inline-flex tracking-tighter w-3.5 text-left ml-0.5 font-mono">
+                          <span className="animate-pulse">.</span>
+                          <span className="animate-pulse delay-150">.</span>
+                          <span className="animate-pulse delay-300">.</span>
+                        </span>
+                      </div>
                     </div>
                   ) : (
                     <span className="font-mono font-black text-4xl text-amber-300 animate-bounce">

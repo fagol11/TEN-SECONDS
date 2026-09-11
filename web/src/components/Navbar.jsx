@@ -3,7 +3,7 @@ import { useGame, getUserRankAndClasse } from '../context/GameContext';
 import { Zap, WifiOff, Disc, Trophy, Users, Download, Music2, Star, Heart, Crown, User } from 'lucide-react';
 
 export default function Navbar() {
-  const { user, activeScreen, setActiveScreen, isOfflineMode, setIsLivesModalOpen, openPlayerProfile } = useGame();
+  const { user, activeScreen, setActiveScreen, isOfflineMode, setIsLivesModalOpen, openPlayerProfile, setIsRanksLadderOpen } = useGame();
 
   const rankInfo = getUserRankAndClasse(user.totalScore);
 
@@ -32,12 +32,13 @@ export default function Navbar() {
         className="h-10 sm:h-11 px-2.5 sm:px-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold font-mono flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:scale-105 transition-all shrink-0"
       >
         <Music2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
-        <span>{user.noteStreak || 1}</span>
+        <span>{user.noteStreak ?? 0}</span>
       </div>
 
-      {/* User Rank & Score Pill */}
+      {/* User Rank & Score Pill (Opens Ranks Progression Ladder) */}
       <div 
-        onClick={() => openPlayerProfile(user)}
+        onClick={() => setIsRanksLadderOpen(true)}
+        title="Clicca per visualizzare la Scalata dei Livelli e i Trofei"
         className="h-10 sm:h-11 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-2 cursor-pointer transition-all hover:border-emerald-500/50 shrink-0"
       >
         <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xs font-bold shrink-0">
@@ -65,6 +66,7 @@ export default function Navbar() {
         <img
           src={user.avatar}
           alt={user.name}
+          referrerPolicy="no-referrer"
           onClick={() => openPlayerProfile(user)}
           title="Clicca per visualizzare il tuo Profilo e i tuoi Trofei"
           className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shrink-0 cursor-pointer hover:scale-105 transition-transform ${
@@ -97,8 +99,8 @@ export default function Navbar() {
           className="flex items-center gap-2.5 cursor-pointer group"
           title="Catalogo Playlist"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
-            <Zap className="w-5 h-5 text-slate-950 stroke-[2.5]" />
+          <div className="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform bg-slate-900 border border-emerald-500/30 flex items-center justify-center">
+            <img src="/icon.png" alt="Ten Seconds Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <span className="font-display font-black text-xl tracking-tight text-white flex items-center gap-1">
@@ -199,8 +201,12 @@ export default function Navbar() {
             <span className="font-black truncate">{user.noteStreak ?? 0}</span>
           </div>
 
-          {/* Rank Level & Score */}
-          <div className="h-10 px-1.5 sm:px-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center gap-1 w-full overflow-hidden">
+          {/* Rank Level & Score (Opens Ranks Progression Ladder) */}
+          <div 
+            onClick={() => setIsRanksLadderOpen(true)}
+            title="Tocca per aprire la Scalata dei Livelli e i Trofei"
+            className="h-10 px-1.5 sm:px-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/50 flex items-center justify-center gap-1 w-full overflow-hidden cursor-pointer active:scale-95 transition-all"
+          >
             <span className="text-sm leading-none shrink-0">{rankInfo.icon}</span>
             <div className="flex flex-col justify-center text-left leading-none truncate">
               <div className="text-[8px] uppercase font-bold text-slate-400 leading-tight truncate">
@@ -218,6 +224,7 @@ export default function Navbar() {
               <img
                 src={user.avatar}
                 alt={user.name}
+                referrerPolicy="no-referrer"
                 onClick={() => openPlayerProfile(user)}
                 title="Clicca per visualizzare il tuo Profilo"
                 className={`w-10 h-10 rounded-xl object-cover cursor-pointer active:scale-95 transition-transform ${

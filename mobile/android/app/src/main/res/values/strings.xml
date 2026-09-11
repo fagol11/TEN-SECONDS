@@ -4,4 +4,5 @@
     <string name="title_activity_main">Ten Seconds</string>
     <string name="package_name">com.tenseconds.app</string>
     <string name="custom_url_scheme">com.tenseconds.app</string>
+    <string name="server_client_id">217514904934-ehk4cpst4votpe25ntjdp6k4fr80j4o3.apps.googleusercontent.com</string>
 </resources>

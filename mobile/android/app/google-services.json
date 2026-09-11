@@ -12,7 +12,36 @@
           "package_name": "com.tenseconds.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "217514904934-r7nj3luijskk5ds4luggtan1bfugmdbs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tenseconds.app",
+            "certificate_hash": "39a58109bd8980564eb86ce47a769867a20b39c4"
+          }
+        },
+        {
+          "client_id": "217514904934-sve9d1vvts6ml8ql2dsr8pgovt7rtacq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tenseconds.app",
+            "certificate_hash": "2df568135c791c36b340bc122bb7e46c06bb0cbb"
+          }
+        },
+        {
+          "client_id": "217514904934-release.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tenseconds.app",
+            "certificate_hash": "b7e3d5ee0af7cf888277fb64685ddb3906797a59"
+          }
+        },
+        {
+          "client_id": "217514904934-ehk4cpst4votpe25ntjdp6k4fr80j4o3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAxBu7kY5d1kpE7ymv-uKqZ5wOJktm7G_I"
@@ -20,7 +49,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "217514904934-ehk4cpst4votpe25ntjdp6k4fr80j4o3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

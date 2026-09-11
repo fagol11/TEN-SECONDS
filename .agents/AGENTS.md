@@ -1,8 +1,6 @@
-# Project Rules for Ten Seconds
+# Regole di Progetto / Project Rules
 
-## Android Build Policy
-- **DO NOT compile/build Android APK or AAB packages** automatically after making changes. Only build APK/AAB when explicitly requested by the user.
-
-## Android APK Naming Rule (When Requested)
-- Whenever an Android build is explicitly requested, ALWAYS name the output file using progressive version numbers: `TenSeconds_Beta_X.apk` (e.g., `TenSeconds_Beta_11.apk`, `TenSeconds_Beta_12.apk`).
-- Never name APKs generically like `app-debug.apk` or `latest.apk`.
+## Regola Rigorosa di Compilazione (Build Policy)
+- **NON COMPILARE MAI pacchetti APK o AAB (`gradlew assembleRelease`, `gradlew bundleRelease`, `gradlew assembleDebug`, `cap sync`, ecc.) a meno che l'utente non lo richieda esplicitamente.**
+- Esegui solo test in locale, modifiche al codice e verifiche via browser/dev server (`npm run dev`), senza lanciare build native Android spontaneamente.
+- Quando l'utente richiede espressamente la compilazione di APK/AAB, procedi con la versione richiesta.

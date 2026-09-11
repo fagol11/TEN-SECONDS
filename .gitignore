@@ -23,9 +23,20 @@ pnpm-debug.log*
 *.sln
 *.sw?
 
-# Environment secrets
+# Environment secrets & Service Accounts
 .env
 .env.local
+firebase-service-account.json
+*.serviceaccount.json
+*.serviceAccount.json
+*serviceaccount*.json
+*service-account*.json
+secrets/
+**/secrets/
+*.secret.json
+*.key.json
+*.jks
+*.keystore
 
 # Capacitor / Android build outputs
 android/app/build
@@ -33,7 +44,18 @@ android/build
 android/.gradle
 android/captures
 android/app/src/main/assets/public
+mobile/android/app/build
+mobile/android/build
+mobile/android/.gradle
+mobile/android/captures
+mobile/android/app/src/main/assets/public
+mobile/dist
 *.apk
 *.aab
 scratch/
+backups/
 .wrangler/
+supabase/.temp/
+.temp/
+
+

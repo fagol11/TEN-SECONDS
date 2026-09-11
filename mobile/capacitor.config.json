@@ -14,7 +14,15 @@
     "GoogleAuth": {
       "scopes": ["profile", "email"],
       "serverClientId": "217514904934-ehk4cpst4votpe25ntjdp6k4fr80j4o3.apps.googleusercontent.com",
-      "forceCodeForRefreshToken": true
+      "forceCodeForRefreshToken": false
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"],
+      "iconColor": "#10b981"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_music_note",
+      "iconColor": "#10b981"
     }
   }
 }

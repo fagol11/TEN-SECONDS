@@ -7,6 +7,11 @@ import path from 'path';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   envDir: path.resolve(__dirname, '..'),
+  server: {
+    watch: {
+      ignored: ['**/android/**', '**/dist/**']
+    }
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,

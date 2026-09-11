@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useGame } from '../context/GameContext';
-import { Zap, ShieldCheck, Sparkles, Radio } from 'lucide-react';
-import { signInWithGoogle, signInWithGoogleIdToken } from '../services/supabaseClient';
+import { useGame, DEFAULT_USER } from '../context/GameContext';
+import { Zap, ShieldCheck, Sparkles, Radio, AlertCircle } from 'lucide-react';
+import { signInWithGoogle, signInWithGoogleIdToken, extractUserProfileFromAuth } from '../services/supabaseClient';
 
 const GOOGLE_CLIENT_ID = '217514904934-ehk4cpst4votpe25ntjdp6k4fr80j4o3.apps.googleusercontent.com';
 
 export default function OnboardingScreen() {
   const { setUser, setActiveScreen, restoreUserProfileData } = useGame();
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
     // Load Google Identity Services Script for seamless One-Tap / ID Token login
@@ -25,11 +26,11 @@ export default function OnboardingScreen() {
                 const res = await signInWithGoogleIdToken(response.credential);
                 if (res?.data?.session?.user) {
                   const u = res.data.session.user;
-                  const meta = u.user_metadata || {};
-                  const fullName = meta.full_name || meta.name || u.email?.split('@')[0] || 'Fabrizio Goscè';
-                  const avatarUrl = meta.avatar_url || meta.picture || null;
-                  await restoreUserProfileData(u.email, { name: fullName, avatar: avatarUrl });
-                  setActiveScreen('CATALOG');
+                  const { email, name, avatar } = extractUserProfileFromAuth(u);
+                  if (email) {
+                    await restoreUserProfileData(email, { name, avatar });
+                    setActiveScreen('CATALOG');
+                  }
                 }
               }
             }
@@ -41,37 +42,34 @@ export default function OnboardingScreen() {
   }, [restoreUserProfileData, setActiveScreen]);
 
   const handleDemoLogin = () => {
-    setUser(prev => ({
-      ...prev,
+    setUser({
+      ...DEFAULT_USER,
       name: 'Giocatore Demo',
       hasCompletedCalibration: true,
       avatar: null
-    }));
+    });
     setActiveScreen('CATALOG');
   };
 
   const handleGoogleLogin = async () => {
     setIsAuthenticating(true);
+    setAuthError(null);
     try {
       const res = await signInWithGoogle();
-      if (res?.user) {
-        const u = res.user;
-        const meta = u.user_metadata || {};
-        const fullName = meta.full_name || meta.name || u.name || u.displayName || u.email?.split('@')[0] || 'Fabrizio Goscè';
-        const avatarUrl = meta.avatar_url || meta.picture || u.imageUrl || null;
-        const email = u.email || 'fabrizio.gosce@gmail.com';
-        
-        await restoreUserProfileData(email, { name: fullName, avatar: avatarUrl });
+      if (res?.user || res?.googleUser) {
+        const { email, name, avatar } = extractUserProfileFromAuth(res.user, res.googleUser);
+        const effectiveEmail = email || res.user?.id || res.googleUser?.id || 'player@tenseconds.app';
+        await restoreUserProfileData(effectiveEmail, { name: name || 'Giocatore', avatar });
         setActiveScreen('CATALOG');
-      } else {
-        // Direct seamless login with verified profile and restore all settings
-        await restoreUserProfileData('fabrizio.gosce@gmail.com', { name: 'Fabrizio Goscè' });
-        setActiveScreen('CATALOG');
+        return;
+      }
+
+      if (res?.error) {
+        setAuthError(res.error);
       }
     } catch (e) {
-      console.warn('[Google Auth] Direct login exception:', e);
-      await restoreUserProfileData('fabrizio.gosce@gmail.com', { name: 'Fabrizio Goscè' });
-      setActiveScreen('CATALOG');
+      console.warn('[Google Auth] Login exception:', e);
+      setAuthError('Accesso con Google non riuscito. Riprova o gioca come ospite.');
     } finally {
       setIsAuthenticating(false);
     }
@@ -82,9 +80,9 @@ export default function OnboardingScreen() {
       
       {/* App Header Logo */}
       <div className="w-full flex items-center justify-center mb-8 pb-3 border-b border-white/10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center text-slate-950 shadow-md shadow-emerald-500/20">
-            <Zap className="w-5 h-5 stroke-[2.5]" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl overflow-hidden shadow-md shadow-emerald-500/20 border border-emerald-500/30 flex items-center justify-center bg-slate-900">
+            <img src="/icon.png" alt="Ten Seconds" className="w-full h-full object-cover" />
           </div>
           <span className="font-display font-black text-lg text-white tracking-wide">TEN SECONDS</span>
         </div>
@@ -107,6 +105,27 @@ export default function OnboardingScreen() {
       {/* Login Options Container */}
       <div className="w-full max-w-sm space-y-3.5 mb-8">
         
+        {/* Detailed Error & Diagnostic Notice */}
+        {authError && (
+          <div className="p-3.5 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs text-left space-y-2 animate-fadeIn">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+              <div className="flex-1 font-mono text-[11px] break-all select-all">
+                {authError}
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                navigator.clipboard?.writeText(authError);
+                alert('Dettagli errore copiati negli appunti!');
+              }}
+              className="w-full py-1 text-[10px] font-bold uppercase tracking-wider bg-rose-500/30 hover:bg-rose-500/50 rounded-lg text-rose-100 transition-colors"
+            >
+              📋 Copia dettagli errore
+            </button>
+          </div>
+        )}
+
         {/* 1. Primary Google Login Button */}
         <button
           onClick={handleGoogleLogin}
@@ -128,7 +147,7 @@ export default function OnboardingScreen() {
           onClick={handleDemoLogin}
           className="w-full py-3.5 px-5 rounded-2xl bg-slate-900/90 hover:bg-slate-800 text-white font-extrabold font-display text-sm tracking-wide flex items-center justify-center gap-3 border border-white/20 hover:border-emerald-500/50 shadow-lg shadow-black/40 transition-all active:scale-[0.98] cursor-pointer"
         >
-          <Zap className="w-5 h-5 text-emerald-400 fill-current shrink-0" />
+          <img src="/icon.png" alt="" className="w-5 h-5 rounded-md shrink-0 object-cover" />
           <span>GIOCA COME OSPITE DEMO</span>
         </button>
 
@@ -147,6 +166,13 @@ export default function OnboardingScreen() {
           <Radio className="w-4 h-4 text-cyan-400 shrink-0" />
           <span>Modalità offline con 15+ pacchetti scaricabili</span>
         </div>
+      </div>
+
+      {/* Developer Subtitle Branding identical to launch transition */}
+      <div className="pt-3 pb-1 text-center select-none">
+        <span className="text-[11px] uppercase tracking-[0.25em] text-slate-500 font-medium font-sans">
+          Gojo's Developers
+        </span>
       </div>
     </div>
   );

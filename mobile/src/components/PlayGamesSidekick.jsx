@@ -37,7 +37,7 @@ export default function PlayGamesSidekick() {
                   <span className="bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded font-mono text-[9px]">Online</span>
                 </div>
                 <div className="font-black text-xs text-white truncate">
-                  Benvenuto/a, {user.name || 'Fabrizio Goscè'}!
+                  Benvenuto/a, {user.name || 'Giocatore'}!
                 </div>
                 <div className="text-[10px] text-slate-400 truncate">
                   XP: {achievementsState.totalXp} • {achievementsState.unlockedCount}/{achievementsState.totalCount} Obiettivi
@@ -83,7 +83,7 @@ export default function PlayGamesSidekick() {
                   GOOGLE PLAY GAMES SIDEKICK
                 </div>
                 <div className="font-display font-black text-lg text-white leading-tight mt-0.5">
-                  {user.name || 'Fabrizio Goscè'}
+                  {user.name || 'Giocatore'}
                 </div>
               </div>
             </div>

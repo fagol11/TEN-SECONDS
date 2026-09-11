@@ -116,26 +116,18 @@ export async function syncOfflineScores() {
     const queue = (await get(SCORE_QUEUE_KEY)) || [];
     if (queue.length === 0) return 0;
 
-    // Dynamically import supabase to avoid circular dependency
-    const { supabase } = await import('./supabaseClient');
+    // Dynamically import saveScoreToSupabase to avoid circular dependency
+    const { saveScoreToSupabase } = await import('./supabaseClient');
 
     let syncedCount = 0;
     for (const entry of queue) {
       try {
-        const userId = entry.userEmail || entry.userId || `offline_${Date.now()}`;
-        const { error } = await supabase
-          .from('leaderboard')
-          .upsert({
-            user_id: userId,
-            user_email: entry.userEmail || null,
-            user_name: entry.userName || 'Ospite',
-            avatar_url: entry.avatarUrl || null,
-            total_score: entry.score || 0,
-            updated_at: new Date(entry.timestamp || Date.now()).toISOString(),
-          }, { onConflict: 'user_id' });
+        const res = await saveScoreToSupabase({
+          punteggio: entry.score || 0,
+          modalita: entry.gameMode || entry.mode || 'CLASSIC',
+        });
 
-        if (!error) syncedCount++;
-        else console.warn('[OfflineSync] Upsert warning for entry:', error.message);
+        if (res?.success) syncedCount++;
       } catch (entryErr) {
         console.warn('[OfflineSync] Failed to sync entry:', entryErr);
       }

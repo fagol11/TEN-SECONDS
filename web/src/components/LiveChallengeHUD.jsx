@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Swords, Wifi, WifiOff, Trophy } from 'lucide-react';
 
 /**
@@ -67,6 +67,7 @@ export default function LiveChallengeHUD({ myScore, myStreak, matchSession, tota
               <img
                 src={opponent.avatar}
                 alt={opponent.name}
+                referrerPolicy="no-referrer"
                 className="w-7 h-7 rounded-lg object-cover border border-purple-400/30 shrink-0"
               />
             ) : (
